@@ -5,19 +5,20 @@
  "avg_cost": 0.0,
  "range_low": 76155.5,
  "range_high": 84840.0,
- "range_built": "2026-11-02",
- "center": 78485.3,
+ "range_built": "2026-11-03",
+ "center": 77086.9,
  "orders": [],
  "round_trips": 0,
  "realized_pnl": 0.0,
  "fees_paid": 0.0,
  "days_inside": 0,
  "stopped_at": "",
- "last_price": 76920.7,
- "last_check": "2026-11-02T18:38:31.181892+00:00",
+ "last_price": 77086.9,
+ "last_check": "2026-11-03T01:17:29.910458+00:00",
  "log": [
   "10-31 18:24 rango reconstruido 76156\u201384840, centro 77596, 0 \u00f3rdenes",
   "11-01 00:35 rango reconstruido 76156\u201384840, centro 77529, 0 \u00f3rdenes",
-  "11-02 01:42 rango reconstruido 76156\u201384840, centro 78485, 0 \u00f3rdenes"
+  "11-02 01:42 rango reconstruido 76156\u201384840, centro 78485, 0 \u00f3rdenes",
+  "11-03 01:17 rango reconstruido 76156\u201384840, centro 77087, 0 \u00f3rdenes"
  ]
 }
