@@ -1,36 +1,60 @@
 name: grid
 
+# GitHub no respeta un cron de */15 en un repo privado (en la práctica corrió 3–4 veces al día).
+# Solución: cada corrida es una "sesión" que repite el tick cada POLL_SECONDS durante LOOP_MINUTES
+# y, al terminar, se vuelve a lanzar a sí misma (workflow_dispatch). El cron horario queda solo de
+# respaldo por si la cadena se rompe. `concurrency` impide dos sesiones a la vez.
+#
+# Costo: una sesión consume minutos de Actions todo el tiempo que dura. Repo privado = 2,000 min/mes
+# gratis (≈ 33 h de bot 24/7). Repo público = ilimitado. Por eso LOOP_MINUTES arranca en 0 (un tick
+# por corrida, como antes) hasta que José decida: repo público → LOOP_MINUTES=350; o VPS.
+
 on:
   schedule:
-    - cron: "*/15 * * * *"     # cada 15 minutos, 24/7 (papel)
+    - cron: "7 * * * *"        # respaldo horario
   workflow_dispatch: {}
 
 permissions:
   contents: write
+  actions: write               # para relanzarse a sí mismo
 
 concurrency:
   group: grid
   cancel-in-progress: false
 
+env:
+  LOOP_MINUTES: ${{ vars.LOOP_MINUTES || 0 }}   # 0 = un solo tick; 350 = sesión de ~6 h encadenada
+  POLL_SECONDS: ${{ vars.POLL_SECONDS || 900 }} # 900 = cada 15 min
+
 jobs:
   run:
     runs-on: ubuntu-latest
+    timeout-minutes: 358       # tope de GitHub: 360
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - name: Corrida del grid (papel)
+      - name: Sesión del grid (papel)
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python -m bot.run
-      - name: Guardar estado
         run: |
           git config user.name "santana-crypto"
           git config user.email "bot@users.noreply.github.com"
-          git add data/ || true
-          git diff --cached --quiet || git commit -m "grid $(date -u +%Y-%m-%dT%H:%MZ)"
-          git pull --rebase origin main || true
-          git push || true
+          end=$(( SECONDS + LOOP_MINUTES * 60 ))
+          while true; do
+            python -m bot.run || echo "tick con error; sigo"
+            git add data/ || true
+            git diff --cached --quiet || git commit -m "grid $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull --rebase origin main || true
+            git push || true
+            [ "$SECONDS" -ge "$end" ] && break
+            sleep "$POLL_SECONDS"
+          done
+      - name: Relanzar la siguiente sesión
+        if: env.LOOP_MINUTES != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/actions/workflows/grid.yml/dispatches" -f ref=main

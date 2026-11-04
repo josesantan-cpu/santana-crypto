@@ -1,7 +1,12 @@
 # santana-crypto
 
 Grid bot de cripto para Santana Capital. **Fase 1: papel** (precios reales de Kraken, órdenes simuladas,
-comisiones descontadas). No necesita cuenta ni llaves; corre cada 15 minutos en GitHub Actions.
+comisiones descontadas). No necesita cuenta ni llaves; corre en GitHub Actions.
+
+**Hosting:** GitHub no respeta un cron de 15 min en repo privado (corrió 3–4 veces/día). El workflow ahora
+corre sesiones encadenadas (`LOOP_MINUTES`, `POLL_SECONDS` como variables del repo). Con `LOOP_MINUTES=0`
+(valor inicial) es un tick por corrida; con 350 es ~6 h continuas que se relanzan solas. Repo privado =
+2,000 min/mes (≈33 h de bot); repo público = ilimitado. Para dinero real: VPS.
 
 ## Qué hace
 
