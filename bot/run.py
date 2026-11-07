@@ -3,6 +3,8 @@
   python -m bot.run            corrida normal (papel)
   python -m bot.run --status   solo imprime el estado (para "cómo va el bot")
   python -m bot.run --dry      valida que el código carga, sin red
+  python -m bot.run --balance  fase 2 (solo lectura): lee el saldo de Kraken con las llaves del entorno
+                               y lo manda por Telegram. No coloca órdenes.
 """
 from __future__ import annotations
 
@@ -10,13 +12,21 @@ import sys
 from datetime import datetime, timezone
 
 from . import config as C
-from . import grid, kraken, notify
+from . import grid, kraken, kraken_private, notify
 
 
 def main(argv: list[str]) -> int:
     if "--dry" in argv:
         s = grid.State()
         print("dry run OK —", grid.status_text(s, 100000.0).splitlines()[0])
+        return 0
+    if "--balance" in argv:
+        try:
+            text = kraken_private.balance_text()
+        except kraken_private.KrakenAuthError as e:
+            text = f"Kraken: no pude autenticar ({e}). Revisa los secrets KRAKEN_API_KEY / KRAKEN_API_SECRET."
+        print(text)
+        notify.send("Santana crypto\n" + text)
         return 0
     s = grid.load_state()
     if "--status" in argv:

@@ -23,6 +23,13 @@ corre sesiones encadenadas (`LOOP_MINUTES`, `POLL_SECONDS` como variables del re
 Estado en `data/state.json`, cada llenado en `data/fills.jsonl`. Para preguntar "cómo va": Claude lee esos
 archivos y responde con equity, vueltas, P&L neto, inventario y distancia a los bordes.
 
+## Fase 2 (en curso)
+
+1. **Conexión solo lectura** (hecho en código): llaves en Secrets, `python -m bot.run --balance` o workflow
+   `balance` (manual) lee saldo y órdenes abiertas y lo manda por Telegram. Sin órdenes.
+2. **Órdenes reales**: `LIVE=true` como variable del repo + capital confirmado por José. Órdenes límite
+   `post_only` (maker). Hasta entonces el grid sigue en papel.
+
 ## Fases
 
 1. Papel 3 semanas → medir: vueltas/semana, P&L neto de comisiones, drawdown, cuántas veces saltó el stop.
