@@ -6,6 +6,8 @@
   Paso 2 (12 nov 2026) = órdenes reales en `bot/live.py`, aprobadas por José por escrito:
   "Apruebo LIVE con $50 en BTC/USD". Capital real en `LIVE_CAPITAL_USD`; se activa con la variable del
   repo `LIVE=true`. Subir el capital o cambiar el par requiere nueva aprobación escrita.
+  12 nov 2026: José aprobó la opción B (`LIVE_IGNORE_TREND = True`): la prueba de $50 compra aunque BTC esté
+  bajo la SMA50. Reactivar el filtro (False) cuando BTC cruce la SMA50 o antes de subir el capital.
 - Estado vivo en `data/live_state.json` / `data/live_fills.jsonl`; el papel sigue en `data/state.json`.
   Al preguntar "cómo va el bot de cripto" con LIVE activo, reportar el estado LIVE.
 - Rutas de Kraken: solo las documentadas en docs.kraken.com (públicas y privadas listadas en kraken_private.py).

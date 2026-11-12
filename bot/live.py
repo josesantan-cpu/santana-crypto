@@ -66,7 +66,7 @@ def plan_grid(s: State, price: float, ohlc: list[dict], ordermin: float) -> list
     """Niveles a colocar (sin enviar): compras bajo el precio si la tendencia lo permite,
     ventas del inventario existente arriba."""
     closes = [c["close"] for c in ohlc]
-    trend_ok = price >= grid.sma(closes, C.TREND_SMA_DAYS)
+    trend_ok = C.LIVE_IGNORE_TREND or price >= grid.sma(closes, C.TREND_SMA_DAYS)
     n, per = level_plan(price, ordermin)
     out: list[dict] = []
     if trend_ok:

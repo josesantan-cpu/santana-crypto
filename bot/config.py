@@ -31,6 +31,9 @@ RESUME_DAYS_INSIDE = 2          # vuelve a operar tras 2 cierres diarios dentro 
 LIVE_CAPITAL_USD = 50.0         # capital real aprobado por José (12 nov 2026): "Apruebo LIVE con $50 en BTC/USD"
 LIVE_USERREF = 20261112         # marca de nuestras órdenes en Kraken (userref); el bot solo toca órdenes con esta marca
 LIVE_MIN_ORDER_BTC = 0.00005    # mínimo de Kraken para XBT (se confirma en vivo con AssetPairs)
+LIVE_IGNORE_TREND = True        # prueba de tubería con $50 (José, 12 nov 2026: "me gusta la B, apruébalo"):
+                                # el modo LIVE coloca compras aunque BTC esté bajo la SMA50. El papel conserva
+                                # el filtro. Volver a False cuando BTC cruce la SMA50 o al subir el capital.
 
 # Operación
 CHECK_INTERVAL_MIN = 15         # frecuencia de la corrida (GitHub Actions)
