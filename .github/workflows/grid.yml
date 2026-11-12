@@ -25,6 +25,7 @@ concurrency:
 env:
   LOOP_MINUTES: ${{ vars.LOOP_MINUTES || 0 }}   # 0 = un solo tick; 350 = sesión de ~6 h encadenada
   POLL_SECONDS: ${{ vars.POLL_SECONDS || 900 }} # 900 = cada 15 min
+  LIVE: ${{ vars.LIVE || 'false' }}             # true = órdenes reales en Kraken (fase 2, aprobado 12 nov 2026 con $50)
 
 jobs:
   run:
@@ -36,8 +37,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - name: Sesión del grid (papel)
+      - name: Sesión del grid
         env:
+          KRAKEN_API_KEY: ${{ secrets.KRAKEN_API_KEY }}
+          KRAKEN_API_SECRET: ${{ secrets.KRAKEN_API_SECRET }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |

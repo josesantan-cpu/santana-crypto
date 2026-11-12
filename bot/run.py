@@ -12,7 +12,7 @@ import sys
 from datetime import datetime, timezone
 
 from . import config as C
-from . import grid, kraken, kraken_private, notify
+from . import grid, kraken, kraken_private, live, notify
 
 
 def main(argv: list[str]) -> int:
@@ -28,13 +28,30 @@ def main(argv: list[str]) -> int:
         print(text)
         notify.send("Santana crypto\n" + text)
         return 0
+    now = datetime.now(timezone.utc)
+    today = now.date().isoformat()
+
+    # Fase 2: órdenes reales en Kraken cuando LIVE=true (variable del repo). El papel sigue aparte.
+    if kraken_private.live_enabled():
+        if "--status" in argv:
+            ls = live.load_state()
+            print(live.status_text(ls, ls.last_price or 0.0))
+            return 0
+        ls, price, events = live.tick(now.isoformat(), today)
+        status = live.status_text(ls, price)
+        print(status)
+        if events:
+            print("\n".join(events))
+        notable = [e for e in events if "vuelta" in e or "STOP" in e or "reanudado" in e or "LIVE activo" in e
+                   or "órdenes reales" in e]
+        if notable:
+            notify.send("Santana crypto LIVE\n" + "\n".join(notable) + "\n\n" + status)
+        return 0
+
     s = grid.load_state()
     if "--status" in argv:
         print(grid.status_text(s, s.last_price or 0.0))
         return 0
-
-    now = datetime.now(timezone.utc)
-    today = now.date().isoformat()
     t = kraken.ticker(C.PAIR)
     ohlc = kraken.daily_ohlc(C.PAIR, 60)
     price = t["last"]

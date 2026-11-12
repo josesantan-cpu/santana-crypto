@@ -111,6 +111,16 @@ def add_order(pair: str, side: str, volume: float, price: float, post_only: bool
     return _post("AddOrder", data)
 
 
+def market_sell(pair: str, volume: float, userref: int | None = None) -> dict:
+    """Venta a mercado (solo para el stop de rango)."""
+    if not live_enabled():
+        raise PermissionError("LIVE=false: orden bloqueada (fase papel)")
+    data: dict[str, Any] = {"pair": pair, "type": "sell", "ordertype": "market", "volume": f"{volume:.8f}"}
+    if userref is not None:
+        data["userref"] = userref
+    return _post("AddOrder", data)
+
+
 def cancel_order(txid: str) -> dict:
     if not live_enabled():
         raise PermissionError("LIVE=false: cancelación bloqueada (fase papel)")

@@ -27,8 +27,10 @@ archivos y responde con equity, vueltas, P&L neto, inventario y distancia a los 
 
 1. **Conexión solo lectura** (hecho en código): llaves en Secrets, `python -m bot.run --balance` o workflow
    `balance` (manual) lee saldo y órdenes abiertas y lo manda por Telegram. Sin órdenes.
-2. **Órdenes reales**: `LIVE=true` como variable del repo + capital confirmado por José. Órdenes límite
-   `post_only` (maker). Hasta entonces el grid sigue en papel.
+2. **Órdenes reales** (`bot/live.py`): variable del repo `LIVE=true`. Capital aprobado: US$50 (12 nov 2026).
+   Órdenes límite `post_only` (maker) marcadas con `userref`; el bot solo toca las suyas. Niveles ajustados al
+   mínimo de Kraken (0.00005 BTC). Stop de rango = cancelar todo + venta a mercado. Estado en
+   `data/live_state.json`, llenados en `data/live_fills.jsonl`. El papel sigue corriendo si LIVE no está.
 
 ## Fases
 

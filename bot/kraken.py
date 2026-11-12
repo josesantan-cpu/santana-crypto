@@ -37,3 +37,11 @@ def daily_ohlc(pair: str, days: int = 60) -> list[dict]:
     out = [{"time": int(r[0]), "open": float(r[1]), "high": float(r[2]), "low": float(r[3]),
             "close": float(r[4]), "volume": float(r[6])} for r in rows]
     return out[-days:]
+
+
+def pair_info(pair: str) -> dict:
+    """Mínimo de orden y decimales del par (ruta pública AssetPairs)."""
+    res = _get("AssetPairs", {"pair": pair})
+    data = next(iter(res.values()))
+    return {"ordermin": float(data.get("ordermin", 0) or 0), "pair_decimals": int(data.get("pair_decimals", 1)),
+            "lot_decimals": int(data.get("lot_decimals", 8)), "altname": data.get("altname", pair)}
