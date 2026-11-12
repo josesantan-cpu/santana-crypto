@@ -260,6 +260,20 @@ def tick(now_iso: str, today: str) -> tuple[State, float, list[str]]:
         events += range_stop(s, ohlc, today, ordermin)
     if s.active and (not s.range_low or s.range_built != today):
         events += rebuild(s, ohlc, price, today, ordermin)
+    elif s.active and not s.orders:
+        # grid vacío (p. ej. precio pegado al borde inferior en la reconstrucción): reintentar centrado en el precio actual
+        plan = plan_grid(s, price, ohlc, ordermin)
+        placed = []
+        for od in plan:
+            try:
+                place(s, od)
+                placed.append(od)
+            except Exception as e:  # noqa: BLE001
+                print(f"[live] rechazo {od['side']} {od['qty']} @ {od['price']}: {e}")
+        if placed:
+            s.center = price
+            s.orders = placed
+            events.append(f"grid recentrado en {price:.0f}: {len(placed)} órdenes reales")
     if first_run:
         events.insert(0, f"LIVE activo: saldo USD {s.cash:.2f}, BTC {s.coin:.6f}, mínimo de orden {ordermin} BTC")
     s.last_price, s.last_check = price, now_iso
