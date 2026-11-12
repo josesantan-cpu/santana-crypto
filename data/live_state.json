@@ -6,17 +6,26 @@
  "range_low": 71133.4,
  "range_high": 81179.6,
  "range_built": "2026-11-12",
- "center": 71834.0,
- "orders": [],
+ "center": 71874.0,
+ "orders": [
+  {
+   "side": "buy",
+   "price": 71155.3,
+   "qty": 0.00017567,
+   "level": -1,
+   "txid": "OCPMEL-RUYFH-62K6NL"
+  }
+ ],
  "round_trips": 0,
  "realized_pnl": 0.0,
  "fees_paid": 0.0,
  "days_inside": 0,
  "stopped_at": "",
- "last_price": 71840.2,
- "last_check": "2026-11-12T17:58:22.900471+00:00",
+ "last_price": 71874.0,
+ "last_check": "2026-11-12T18:13:24.709744+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
-  "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales"
+  "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
+  "11-12 18:13 grid recentrado en 71874: 1 \u00f3rdenes reales"
  ]
 }
