@@ -25,7 +25,7 @@ TREND_SMA_DAYS = 50             # bajo la SMA50 solo vende inventario, no acumul
 
 # Stop de rango (apagado)
 RANGE_STOP_PCT = 0.02           # cierre diario 2% por debajo del borde inferior → vende todo y se apaga
-RESUME_DAYS_INSIDE = 2          # vuelve a operar tras 2 cierres diarios dentro del rango
+RESUME_DAYS_INSIDE = 1    # José, 13 nov 2026 ("vamos por el B"): 1 cierre diario dentro del rango reanuda. Volver a 2 al subir el capital.
 
 # Fase 2 (dinero real). Se activa con la variable de entorno LIVE=true (variable del repo en GitHub).
 LIVE_CAPITAL_USD = 50.0         # capital real aprobado por José (12 nov 2026): "Apruebo LIVE con $50 en BTC/USD"
