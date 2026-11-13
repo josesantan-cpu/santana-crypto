@@ -1,8 +1,8 @@
 {
  "active": false,
- "cash": 37.45,
- "coin": 0.00017567,
- "avg_cost": 35577.64558547276,
+ "cash": 49.38,
+ "coin": 0.0,
+ "avg_cost": 0.0,
  "range_low": 71133.4,
  "range_high": 81179.6,
  "range_built": "2026-11-12",
@@ -13,8 +13,8 @@
  "fees_paid": 0.0812761392372,
  "days_inside": 0,
  "stopped_at": "2026-11-13",
- "last_price": 68476.6,
- "last_check": "2026-11-13T05:54:57.677174+00:00",
+ "last_price": 68151.8,
+ "last_check": "2026-11-13T06:10:01.943299+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
