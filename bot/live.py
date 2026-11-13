@@ -254,6 +254,9 @@ def range_stop(s: State, ohlc: list[dict], today: str, ordermin: float) -> list[
         s.active, s.stopped_at, s.days_inside = False, today, 0
         return [f"STOP DE RANGO: cierre {last_close:.0f} < {floor:.0f}. Inventario liquidado a mercado ({pnl:+.2f}). Bot apagado."]
     if not s.active:
+        if s.stop_check_day == today:          # un solo conteo por día
+            return []
+        s.stop_check_day = today
         s.days_inside = s.days_inside + 1 if s.range_low <= last_close <= s.range_high else 0
         if s.days_inside >= C.RESUME_DAYS_INSIDE:
             s.active, s.stopped_at = True, ""

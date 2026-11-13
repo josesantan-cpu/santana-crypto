@@ -50,6 +50,7 @@ class State:
     fees_paid: float = 0.0
     days_inside: int = 0
     stopped_at: str = ""
+    stop_check_day: str = ""        # último día (UTC) en que se contó el cierre para reanudar
     last_price: float = 0.0
     last_check: str = ""
     log: list[str] = field(default_factory=list)
@@ -177,6 +178,9 @@ def range_stop_check(s: State, ohlc: list[dict], today: str) -> list[str]:
         s.active, s.stopped_at, s.days_inside = False, today, 0
         return [f"STOP DE RANGO: cierre {last_close:.0f} < {floor:.0f}. Inventario liquidado ({pnl:+.2f}). Bot apagado."]
     if not s.active:
+        if s.stop_check_day == today:          # un solo conteo por día, aunque el tick corra cada 15 min
+            return []
+        s.stop_check_day = today
         if s.range_low <= last_close <= s.range_high:
             s.days_inside += 1
         else:
