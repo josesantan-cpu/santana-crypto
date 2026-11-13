@@ -9,7 +9,7 @@
  "center": 71874.0,
  "orders": [],
  "round_trips": 0,
- "realized_pnl": 5.748083182762802,
+ "realized_pnl": -0.55,
  "fees_paid": 0.0812761392372,
  "days_inside": 0,
  "stopped_at": "2026-11-13",
@@ -23,6 +23,7 @@
   "11-13 05:54 1 orden(es) ya no estaban en Kraken (canceladas o llenadas sin trade visible)",
   "11-13 05:54 cancelada orden hu\u00e9rfana OW5MFT-7T3MK-4BD6ST",
   "11-13 05:54 cancelada orden hu\u00e9rfana OVTCPL-5AXUR-RP2ZR6",
-  "11-13 05:54 STOP DE RANGO: cierre 68477 < 69711. Inventario liquidado a mercado (+5.75). Bot apagado."
+  "11-13 05:54 STOP DE RANGO: cierre 68477 < 69711. Inventario liquidado a mercado (+5.75). Bot apagado.",
+  "11-13 correcci\u00f3n contable: la venta del stop se registr\u00f3 +5.75 por error (costo promedio mal calculado); real \u22120.55"
  ]
 }

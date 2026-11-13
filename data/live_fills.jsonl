@@ -1,2 +1,2 @@
 {"ts": "2026-11-12T23:29:12.012244+00:00", "side": "buy", "price": 71155.3, "qty": 0.00017567, "fee": 0.05, "pnl": 0.0, "txid": "OCPMEL-RUYFH-62K6NL"}
-{"ts": "2026-11-13", "side": "sell", "price": 68476.6, "qty": 0.00017567, "fee": 0.0313, "pnl": 5.7481, "txid": "market-stop"}
+{"ts": "2026-11-13", "side": "sell", "price": 68476.6, "qty": 0.00017567, "fee": 0.0313, "pnl": -0.5521, "txid": "market-stop"}

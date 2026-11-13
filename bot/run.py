@@ -43,7 +43,7 @@ def main(argv: list[str]) -> int:
         if events:
             print("\n".join(events))
         notable = [e for e in events if "vuelta" in e or "STOP" in e or "reanudado" in e or "LIVE activo" in e
-                   or "órdenes reales" in e]
+                   or "órdenes reales" in e or "ERROR" in e or "adoptada" in e]
         if notable:
             notify.send("Santana crypto LIVE\n" + "\n".join(notable) + "\n\n" + status)
         return 0

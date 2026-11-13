@@ -151,7 +151,8 @@ def process_fills(s: State, since: int, now: str) -> list[str]:
         price = f["cost"] / f["vol"]
         fee = f["fee"]
         if od["side"] == "buy":
-            s.avg_cost = (s.avg_cost * s.coin + price * f["vol"]) / (s.coin + f["vol"]) if (s.coin + f["vol"]) else price
+            prev_coin = max(s.coin - f["vol"], 0.0)   # Balance ya incluye esta compra
+            s.avg_cost = (s.avg_cost * prev_coin + price * f["vol"]) / (prev_coin + f["vol"]) if prev_coin > 0 else price
             s.fees_paid += fee
             _log_fill(now, "buy", round(price, 1), f["vol"], fee, 0.0, od["txid"])
             events.append(f"compra {f['vol']:.6f} @ {price:,.0f}")
@@ -186,11 +187,16 @@ def reconcile_open(s: State) -> list[str]:
         s.orders = [od for od in s.orders if od["txid"] in live_ids]
         events.append(f"{len(gone)} orden(es) ya no estaban en Kraken (canceladas o llenadas sin trade visible)")
     for txid in live_ids - tracked:
+        o = oo[txid]
+        d = o.get("descr", {})
         try:
-            kp.cancel_order(txid)
-            events.append(f"cancelada orden huérfana {txid}")
+            od = {"side": d.get("type"), "price": float(d.get("price")), "qty": round(float(o.get("vol", 0)) - float(o.get("vol_exec", 0)), 8),
+                  "level": 0, "txid": txid}
+            if od["side"] in ("buy", "sell") and od["qty"] > 0:
+                s.orders.append(od)
+                events.append(f"adoptada orden {od['side']} {od['qty']:.6f} @ {od['price']:,.0f} ({txid})")
         except Exception as e:  # noqa: BLE001
-            print(f"[live] huérfana {txid}: {e}")
+            print(f"[live] no pude adoptar {txid}: {e}")
     return events
 
 
@@ -199,9 +205,16 @@ def rebuild(s: State, ohlc: list[dict], price: float, today: str, ordermin: floa
     s.range_low = min(c["low"] for c in recent)
     s.range_high = max(c["high"] for c in recent)
     s.range_built, s.center = today, price
-    cancel_all_mine(s)
+    events: list[str] = []
+    try:
+        cancel_all_mine(s)
+    except Exception as e:  # noqa: BLE001
+        events.append(f"ERROR cancelando: {e}")
     time.sleep(1)
-    sync_balances(s)
+    try:
+        sync_balances(s)
+    except Exception as e:  # noqa: BLE001
+        events.append(f"ERROR leyendo saldo: {e}")
     plan = plan_grid(s, price, ohlc, ordermin)
     placed = []
     for od in plan:
@@ -209,13 +222,22 @@ def rebuild(s: State, ohlc: list[dict], price: float, today: str, ordermin: floa
             place(s, od)
             placed.append(od)
         except Exception as e:  # noqa: BLE001
-            print(f"[live] rechazo {od['side']} {od['qty']} @ {od['price']}: {e}")
+            events.append(f"ERROR orden {od['side']} {od['qty']} @ {od['price']}: {e}")
     s.orders = placed
-    return [f"rango reconstruido {s.range_low:.0f}–{s.range_high:.0f}, centro {price:.0f}, {len(placed)} órdenes reales"]
+    events.append(f"rango reconstruido {s.range_low:.0f}–{s.range_high:.0f}, centro {price:.0f}, {len(placed)} órdenes reales")
+    return events
+
+
+def last_completed_close(ohlc: list[dict]) -> float:
+    """Kraken incluye la vela del día en curso al final; el cierre diario válido es el anterior."""
+    import datetime as _dt
+    today_start = _dt.datetime.now(_dt.timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    done = [c for c in ohlc if float(c.get("time", 0)) < today_start]
+    return (done[-1] if done else ohlc[-1])["close"]
 
 
 def range_stop(s: State, ohlc: list[dict], today: str, ordermin: float) -> list[str]:
-    last_close = ohlc[-1]["close"]
+    last_close = last_completed_close(ohlc)
     floor = s.range_low * (1 - C.RANGE_STOP_PCT)
     if s.active and last_close < floor:
         cancel_all_mine(s)
@@ -253,14 +275,20 @@ def tick(now_iso: str, today: str) -> tuple[State, float, list[str]]:
 
     sync_balances(s)
     since = int(_iso_to_unix(s.last_check)) - 120 if s.last_check else int(time.time()) - 86400
-    if s.orders:
-        events += process_fills(s, since, now_iso)
+    try:
+        if s.orders:
+            events += process_fills(s, since, now_iso)
         events += reconcile_open(s)
-    if s.range_low and s.range_built != today:
-        events += range_stop(s, ohlc, today, ordermin)
-    if s.active and (not s.range_low or s.range_built != today):
-        events += rebuild(s, ohlc, price, today, ordermin)
-    elif s.active and not s.orders:
+    except Exception as e:  # noqa: BLE001
+        events.append(f"ERROR conciliando: {e}")
+    try:
+        if s.range_low and s.range_built != today:
+            events += range_stop(s, ohlc, today, ordermin)
+        if s.active and (not s.range_low or s.range_built != today):
+            events += rebuild(s, ohlc, price, today, ordermin)
+    except Exception as e:  # noqa: BLE001
+        events.append(f"ERROR rango/stop: {e}")
+    if s.active and s.range_built == today and not s.orders:
         # grid vacío (p. ej. precio pegado al borde inferior en la reconstrucción): reintentar centrado en el precio actual
         plan = plan_grid(s, price, ohlc, ordermin)
         placed = []
