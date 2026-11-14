@@ -1,19 +1,19 @@
 {
  "active": true,
- "cash": 36.83,
- "coin": 0.00018258,
- "avg_cost": 68461.3867893526,
+ "cash": 24.28,
+ "coin": 0.0003673,
+ "avg_cost": 68064.03484889735,
  "range_low": 67500.0,
  "range_high": 81179.6,
  "range_built": "2026-11-14",
  "center": 68354.8,
  "orders": [
   {
-   "side": "buy",
-   "price": 67671.3,
+   "side": "sell",
+   "price": 68348.0,
    "qty": 0.00018472,
-   "level": -1,
-   "txid": "OCVX6I-UKD24-BAOSNE"
+   "level": 0,
+   "txid": "OVZS32-YNFQV-6SURGJ"
   },
   {
    "side": "sell",
@@ -32,12 +32,12 @@
  ],
  "round_trips": 0,
  "realized_pnl": -0.55,
- "fees_paid": 0.1312761392372,
+ "fees_paid": 0.18127613923719998,
  "days_inside": 2,
  "stopped_at": "",
  "stop_check_day": "",
- "last_price": 68076.7,
- "last_check": "2026-11-14T02:19:16.233329+00:00",
+ "last_price": 67221.9,
+ "last_check": "2026-11-14T02:34:18.987329+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
@@ -51,6 +51,7 @@
   "11-13 10:05 reanudado: 2 cierres dentro del rango",
   "11-13 10:05 rango reconstruido 67500\u201381180, centro 69153, 2 \u00f3rdenes reales",
   "11-13 15:36 compra 0.000183 @ 68,461",
-  "11-14 00:03 rango reconstruido 67500\u201381180, centro 68355, 3 \u00f3rdenes reales"
+  "11-14 00:03 rango reconstruido 67500\u201381180, centro 68355, 3 \u00f3rdenes reales",
+  "11-14 02:34 compra 0.000185 @ 67,671"
  ]
 }
