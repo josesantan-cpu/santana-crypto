@@ -9,6 +9,9 @@
   12 nov 2026: José aprobó la opción B (`LIVE_IGNORE_TREND = True`): la prueba de $50 compra aunque BTC esté
   bajo la SMA50. Reactivar el filtro (False) cuando BTC cruce la SMA50 o antes de subir el capital.
   13 nov 2026: José aprobó RESUME_DAYS_INSIDE = 1 (reanudar tras un cierre dentro del rango). Volver a 2 al subir capital.
+  14 nov 2026: José aprobó la fase de observación de señales de flujo (`bot/signals.py`): Kraken Trades/Depth +
+  Unusual Whales ballenas cripto (opcional, secreto `UW_API_KEY`). SOLO REGISTRO en `data/signals.jsonl`; no afecta
+  órdenes. Pasar a filtro activo de compras requiere nueva aprobación escrita tras ~1 semana de datos.
 - Estado vivo en `data/live_state.json` / `data/live_fills.jsonl`; el papel sigue en `data/state.json`.
   Al preguntar "cómo va el bot de cripto" con LIVE activo, reportar el estado LIVE.
 - Rutas de Kraken: solo las documentadas en docs.kraken.com (públicas y privadas listadas en kraken_private.py).

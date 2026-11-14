@@ -12,7 +12,15 @@ import sys
 from datetime import datetime, timezone
 
 from . import config as C
-from . import grid, kraken, kraken_private, live, notify
+from . import grid, kraken, kraken_private, live, notify, signals
+
+
+def _signal_line(price: float) -> str:
+    """Fase de observación (14 nov 2026): registra la señal de flujo en data/signals.jsonl. Nunca afecta órdenes."""
+    try:
+        return signals.summary_line(signals.record(C.PAIR, price))
+    except Exception as e:  # noqa: BLE001
+        return f"señal: no registrada ({str(e)[:80]})"
 
 
 def main(argv: list[str]) -> int:
@@ -40,6 +48,7 @@ def main(argv: list[str]) -> int:
         ls, price, events = live.tick(now.isoformat(), today)
         status = live.status_text(ls, price)
         print(status)
+        print(_signal_line(price))
         if events:
             print("\n".join(events))
         notable = [e for e in events if "vuelta" in e or "STOP" in e or "reanudado" in e or "LIVE activo" in e
@@ -76,6 +85,7 @@ def main(argv: list[str]) -> int:
 
     status = grid.status_text(s, price)
     print(status)
+    print(_signal_line(price))
     if events:
         print("\n".join(events))
     # Telegram solo con eventos (vueltas, stop, reanudación), no cada 15 min
