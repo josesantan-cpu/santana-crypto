@@ -1,0 +1,27 @@
+# Prueba manual de las señales de flujo (solo lectura). No coloca órdenes ni toca el estado del grid.
+name: signals
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Foto de la señal
+        env:
+          UW_API_KEY: ${{ secrets.UW_API_KEY }}
+        run: |
+          python - <<'EOF'
+          import json
+          from bot import config as C, kraken, signals
+          price = kraken.ticker(C.PAIR)["last"]
+          snap = signals.snapshot(C.PAIR, price)
+          print(signals.summary_line(snap))
+          print(json.dumps(snap, indent=1, ensure_ascii=False))
+          EOF
