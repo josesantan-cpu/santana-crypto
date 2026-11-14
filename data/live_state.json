@@ -5,22 +5,29 @@
  "avg_cost": 68461.3867893526,
  "range_low": 67500.0,
  "range_high": 81179.6,
- "range_built": "2026-11-13",
- "center": 69152.9,
+ "range_built": "2026-11-14",
+ "center": 68354.8,
  "orders": [
   {
-   "side": "sell",
-   "price": 69146.0,
-   "qty": 0.00018258,
-   "level": 0,
-   "txid": "OQDYE3-2FBGF-AEXUNW"
+   "side": "buy",
+   "price": 67671.3,
+   "qty": 0.00018472,
+   "level": -1,
+   "txid": "OCVX6I-UKD24-BAOSNE"
   },
   {
-   "side": "buy",
-   "price": 67776.8,
-   "qty": 0.00018443,
-   "level": -2,
-   "txid": "O7Q6BV-ZBUMI-Z5PCXK"
+   "side": "sell",
+   "price": 69038.3,
+   "qty": 9.129e-05,
+   "level": 1,
+   "txid": "OZKHWL-3W26I-GLMKGD"
+  },
+  {
+   "side": "sell",
+   "price": 69728.7,
+   "qty": 9.129e-05,
+   "level": 2,
+   "txid": "OGLM2M-S46FX-R4FSTK"
   }
  ],
  "round_trips": 0,
@@ -29,8 +36,8 @@
  "days_inside": 2,
  "stopped_at": "",
  "stop_check_day": "",
- "last_price": 68070.6,
- "last_check": "2026-11-13T23:48:40.743602+00:00",
+ "last_price": 68354.8,
+ "last_check": "2026-11-14T00:03:43.975301+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
@@ -43,6 +50,7 @@
   "11-13 correcci\u00f3n contable: la venta del stop se registr\u00f3 +5.75 por error (costo promedio mal calculado); real \u22120.55",
   "11-13 10:05 reanudado: 2 cierres dentro del rango",
   "11-13 10:05 rango reconstruido 67500\u201381180, centro 69153, 2 \u00f3rdenes reales",
-  "11-13 15:36 compra 0.000183 @ 68,461"
+  "11-13 15:36 compra 0.000183 @ 68,461",
+  "11-14 00:03 rango reconstruido 67500\u201381180, centro 68355, 3 \u00f3rdenes reales"
  ]
 }
