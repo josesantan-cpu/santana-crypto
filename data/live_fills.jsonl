@@ -2,3 +2,4 @@
 {"ts": "2026-11-13", "side": "sell", "price": 68476.6, "qty": 0.00017567, "fee": 0.0313, "pnl": -0.5521, "txid": "market-stop"}
 {"ts": "2026-11-13T15:36:06.998086+00:00", "side": "buy", "price": 68461.4, "qty": 0.00018258, "fee": 0.05, "pnl": 0.0, "txid": "OBIBAY-A5R3P-BGJNOY"}
 {"ts": "2026-11-14T02:34:18.987329+00:00", "side": "buy", "price": 67671.3, "qty": 0.00018472, "fee": 0.05, "pnl": 0.0, "txid": "OCVX6I-UKD24-BAOSNE"}
+{"ts": "2026-11-15", "side": "sell", "price": 64115.1, "qty": 0.0003673, "fee": 0.0612, "pnl": -1.5117, "txid": "market-stop"}
