@@ -45,7 +45,13 @@ def main(argv: list[str]) -> int:
             ls = live.load_state()
             print(live.status_text(ls, ls.last_price or 0.0))
             return 0
-        ls, price, events = live.tick(now.isoformat(), today)
+        try:
+            ls, price, events = live.tick(now.isoformat(), today)
+        except Exception as e:  # noqa: BLE001 — un tick roto debe avisar, no quedarse mudo (15 nov: estado con conflicto de git)
+            msg = f"ERROR LIVE: el tick falló: {type(e).__name__}: {str(e)[:200]}"
+            print(msg)
+            notify.send("Santana crypto LIVE\n" + msg)
+            return 1
         status = live.status_text(ls, price)
         print(status)
         print(_signal_line(price))

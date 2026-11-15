@@ -47,13 +47,26 @@ jobs:
         run: |
           git config user.name "santana-crypto"
           git config user.email "bot@users.noreply.github.com"
+          # Partir SIEMPRE del último estado publicado, no del commit con que se despachó la sesión
+          # (15 nov: una sesión esperó 1h38 en cola, arrancó con datos viejos y el rebase quedó en conflicto 3 horas).
+          git fetch origin main
+          git checkout -B main origin/main
           end=$(( SECONDS + LOOP_MINUTES * 60 ))
           while true; do
             python -m bot.run || echo "tick con error; sigo"
             git add data/ || true
-            git diff --cached --quiet || git commit -m "grid $(date -u +%Y-%m-%dT%H:%MZ)"
-            git pull --rebase origin main || true
-            git push || true
+            if ! git diff --cached --quiet; then
+              git commit -m "grid $(date -u +%Y-%m-%dT%H:%MZ)"
+              if ! git pull --rebase origin main; then
+                # Conflicto: lo local es la verdad (viene de Kraken). Rehacer el commit encima de origin.
+                git rebase --abort || true
+                rm -rf /tmp/data_local && cp -r data /tmp/data_local
+                git fetch origin main && git reset --hard origin/main
+                cp -r /tmp/data_local/. data/
+                git add data/ && git commit -m "grid $(date -u +%Y-%m-%dT%H:%MZ) (reconciliado)" || true
+              fi
+              git push || { git pull --rebase origin main && git push; } || true
+            fi
             [ "$SECONDS" -ge "$end" ] && break
             sleep "$POLL_SECONDS"
           done
