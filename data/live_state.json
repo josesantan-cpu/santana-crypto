@@ -1,21 +1,21 @@
 {
- "active": false,
+ "active": true,
  "cash": 48.12,
  "coin": 0.0,
  "avg_cost": 0.0,
- "range_low": 67500.0,
- "range_high": 81179.6,
- "range_built": "2026-11-14",
- "center": 68354.8,
+ "range_low": 0.302021,
+ "range_high": 0.322611,
+ "range_built": "2026-11-17",
+ "center": 0.304585,
  "orders": [],
  "round_trips": 0,
  "realized_pnl": -2.0616724081979987,
  "fees_paid": 0.2425047774352,
  "days_inside": 0,
- "stopped_at": "2026-11-15",
- "stop_check_day": "",
- "last_price": 64893.6,
- "last_check": "2026-11-17T04:11:44.647826+00:00",
+ "stopped_at": "",
+ "stop_check_day": "2026-11-17",
+ "last_price": 0.304585,
+ "last_check": "2026-11-17T04:16:48.624748+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
@@ -31,7 +31,9 @@
   "11-13 15:36 compra 0.000183 @ 68,461",
   "11-14 00:03 rango reconstruido 67500\u201381180, centro 68355, 3 \u00f3rdenes reales",
   "11-14 02:34 compra 0.000185 @ 67,671",
-  "11-15 03:02 STOP DE RANGO: cierre 64115 < 66150. Inventario liquidado a mercado (-1.51). Bot apagado."
+  "11-15 03:02 STOP DE RANGO: cierre 64115 < 66150. Inventario liquidado a mercado (-1.51). Bot apagado.",
+  "11-17 04:16 CAMBIO DE PAR: BTC/USD \u2192 TRX/USD (rango 14d 0.302021\u20130.322611, ancho 7%, cierre dentro). Grid nuevo en el pr\u00f3ximo paso.",
+  "11-17 04:16 rango TRX/USD reconstruido 0.302021\u20130.322611, centro 0.304585, 0 \u00f3rdenes reales"
  ],
- "pair": "XBTUSD"
+ "pair": "TRXUSD"
 }
