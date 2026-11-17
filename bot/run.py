@@ -15,10 +15,10 @@ from . import config as C
 from . import grid, kraken, kraken_private, live, notify, signals
 
 
-def _signal_line(price: float) -> str:
+def _signal_line(price: float, pair: str = C.PAIR) -> str:
     """Fase de observación (14 nov 2026): registra la señal de flujo en data/signals.jsonl. Nunca afecta órdenes."""
     try:
-        return signals.summary_line(signals.record(C.PAIR, price))
+        return signals.summary_line(signals.record(pair, price))
     except Exception as e:  # noqa: BLE001
         return f"señal: no registrada ({str(e)[:80]})"
 
@@ -54,11 +54,12 @@ def main(argv: list[str]) -> int:
             return 1
         status = live.status_text(ls, price)
         print(status)
-        print(_signal_line(price))
+        print(_signal_line(price, ls.pair))
         if events:
             print("\n".join(events))
         notable = [e for e in events if "vuelta" in e or "STOP" in e or "reanudado" in e or "LIVE activo" in e
-                   or "órdenes reales" in e or "ERROR" in e or "adoptada" in e]
+                   or "órdenes reales" in e or "ERROR" in e or "adoptada" in e or "CAMBIO DE PAR" in e
+                   or "sin par alterno" in e]
         if notable:
             notify.send("Santana crypto LIVE\n" + "\n".join(notable) + "\n\n" + status)
         return 0

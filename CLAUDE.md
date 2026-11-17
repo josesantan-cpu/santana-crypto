@@ -12,6 +12,10 @@
   14 nov 2026: José aprobó la fase de observación de señales de flujo (`bot/signals.py`): Kraken Trades/Depth +
   Unusual Whales ballenas cripto (opcional, secreto `UW_API_KEY`). SOLO REGISTRO en `data/signals.jsonl`; no afecta
   órdenes. Pasar a filtro activo de compras requiere nueva aprobación escrita tras ~1 semana de datos.
+  17 nov 2026: José aprobó dos pares LIVE con el mismo capital, uno a la vez (`LIVE_PAIRS`: BTC/USD y TRX/USD):
+  "Configura el bot para que haga trades con TRX o BTC, así si una se sale de rango no tengo que esperar a que vuelva".
+  Al apagarse un par por stop, `live.try_switch` pasa al otro si su rango de 14 días mide ≤ 20% y el último cierre
+  cayó dentro. Agregar un tercer par requiere nueva aprobación escrita. El par activo vive en `live_state.json["pair"]`.
 - Estado vivo en `data/live_state.json` / `data/live_fills.jsonl`; el papel sigue en `data/state.json`.
   Al preguntar "cómo va el bot de cripto" con LIVE activo, reportar el estado LIVE.
 - Rutas de Kraken: solo las documentadas en docs.kraken.com (públicas y privadas listadas en kraken_private.py).

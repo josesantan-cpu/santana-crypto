@@ -31,6 +31,17 @@ RESUME_DAYS_INSIDE = 1    # José, 13 nov 2026 ("vamos por el B"): 1 cierre diar
 LIVE_CAPITAL_USD = 50.0         # capital real aprobado por José (12 nov 2026): "Apruebo LIVE con $50 en BTC/USD"
 LIVE_USERREF = 20261112         # marca de nuestras órdenes en Kraken (userref); el bot solo toca órdenes con esta marca
 LIVE_MIN_ORDER_BTC = 0.00005    # mínimo de Kraken para XBT (se confirma en vivo con AssetPairs)
+
+# Pares LIVE (José, 17 nov 2026: "Configura el bot para que haga trades con TRX o BTC, así si una se sale de rango
+# no tengo que esperar a que vuelva ya que continuamos con la otra"). UN par a la vez con los mismos $50:
+# cuando el par activo se apaga por stop de rango, el bot pasa al otro si ese está en rango.
+LIVE_PAIRS = {
+    "XBTUSD": {"label": "BTC/USD", "assets": ("XXBT", "XBT"), "names": ("XBTUSD", "XXBTZUSD"), "min_order": 0.00005, "decimals": 1},
+    "TRXUSD": {"label": "TRX/USD", "assets": ("TRX",), "names": ("TRXUSD", "TRXZUSD"), "min_order": 0.0, "decimals": 5},
+}
+LIVE_DEFAULT_PAIR = "XBTUSD"
+SWITCH_MAX_RANGE_PCT = 0.20     # el par alterno califica si su rango de 14 días mide ≤ 20% (alto−bajo)/bajo
+SWITCH_MIN_DAYS_INSIDE = 1      # y su último cierre diario está dentro de ese rango
 LIVE_IGNORE_TREND = True        # prueba de tubería con $50 (José, 12 nov 2026: "me gusta la B, apruébalo"):
                                 # el modo LIVE coloca compras aunque BTC esté bajo la SMA50. El papel conserva
                                 # el filtro. Volver a False cuando BTC cruce la SMA50 o al subir el capital.

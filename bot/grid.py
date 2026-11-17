@@ -54,6 +54,7 @@ class State:
     last_price: float = 0.0
     last_check: str = ""
     log: list[str] = field(default_factory=list)
+    pair: str = ""                  # par activo (LIVE); vacío = C.PAIR
 
 
 def load_state() -> State:

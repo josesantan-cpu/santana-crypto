@@ -25,14 +25,40 @@ DATA = grid.DATA
 STATE = DATA / "live_state.json"
 FILLS = DATA / "live_fills.jsonl"
 
+# Contexto del par activo en este tick (lo fija tick()). Un par a la vez con el capital LIVE.
+_PAIR = C.LIVE_DEFAULT_PAIR
+_DEC = 1
+
+
+def set_pair(pair: str, price_decimals: int = 1) -> None:
+    global _PAIR, _DEC
+    _PAIR, _DEC = pair, price_decimals
+
+
+def pair_cfg(pair: str | None = None) -> dict:
+    return C.LIVE_PAIRS.get(pair or _PAIR, {"label": pair or _PAIR, "assets": (), "names": (pair or _PAIR,), "min_order": 0.0})
+
+
+def rp(x: float) -> float:
+    """Redondea un precio a los decimales del par activo."""
+    return round(x, _DEC)
+
+
+def fp(x: float) -> str:
+    """Formatea un precio para mensajes según el par activo."""
+    return f"{x:,.0f}" if _DEC <= 1 else f"{x:.{_DEC}f}"
+
 
 # --- estado ----------------------------------------------------------------------
 
 def load_state() -> State:
     if STATE.exists():
-        return State(**json.loads(STATE.read_text()))
-    s = State()
-    s.cash = 0.0
+        s = State(**json.loads(STATE.read_text()))
+    else:
+        s = State()
+        s.cash = 0.0
+    if not s.pair:
+        s.pair = C.LIVE_DEFAULT_PAIR
     return s
 
 
@@ -72,7 +98,7 @@ def plan_grid(s: State, price: float, ohlc: list[dict], ordermin: float) -> list
     if trend_ok:
         cash_left = s.cash
         for i in range(1, n + 1):
-            p = round(price * (1 - C.LEVEL_SPACING_PCT) ** i, 1)
+            p = rp(price * (1 - C.LEVEL_SPACING_PCT) ** i)
             if p < s.range_low or cash_left < per * (1 + C.FEE_MAKER):
                 break
             out.append({"side": "buy", "price": p, "qty": round(per / p, 8), "level": -i, "txid": ""})
@@ -84,7 +110,7 @@ def plan_grid(s: State, price: float, ohlc: list[dict], ordermin: float) -> list
         for i in range(1, chunks + 1):
             if remaining < ordermin:
                 break
-            p = round(price * (1 + C.LEVEL_SPACING_PCT) ** i, 1)
+            p = rp(price * (1 + C.LEVEL_SPACING_PCT) ** i)
             if p > s.range_high:
                 break
             qty = round(min(q, remaining), 8)
@@ -102,13 +128,14 @@ def _mine(order: dict) -> bool:
 def sync_balances(s: State) -> None:
     b = kp.balance()
     s.cash = round(b.get("ZUSD", 0.0) + b.get("USD", 0.0), 2)
-    s.coin = round(b.get("XXBT", 0.0) + b.get("XBT", 0.0), 8)
+    s.coin = round(sum(b.get(a, 0.0) for a in pair_cfg()["assets"]), 8)
     if s.coin <= 1e-9:
         s.coin, s.avg_cost = 0.0, 0.0
 
 
 def place(s: State, od: dict) -> str:
-    res = kp.add_order(C.PAIR, od["side"], od["qty"], od["price"], post_only=True, userref=C.LIVE_USERREF)
+    res = kp.add_order(_PAIR, od["side"], od["qty"], od["price"], post_only=True, userref=C.LIVE_USERREF,
+                       price_decimals=_DEC)
     txid = (res.get("txid") or [""])[0]
     od["txid"] = txid
     return txid
@@ -134,7 +161,7 @@ def process_fills(s: State, since: int, now: str) -> list[str]:
     trades = kp.trades_history(start=since)
     by_order: dict[str, dict] = {}
     for tid, t in trades.items():
-        if t.get("pair") not in (C.PAIR, "XXBTZUSD", "XBTUSD"):
+        if t.get("pair") not in pair_cfg()["names"]:
             continue
         o = by_order.setdefault(t["ordertxid"], {"vol": 0.0, "cost": 0.0, "fee": 0.0, "type": t["type"], "tid": tid})
         o["vol"] += float(t["vol"])
@@ -154,9 +181,9 @@ def process_fills(s: State, since: int, now: str) -> list[str]:
             prev_coin = max(s.coin - f["vol"], 0.0)   # Balance ya incluye esta compra
             s.avg_cost = (s.avg_cost * prev_coin + price * f["vol"]) / (prev_coin + f["vol"]) if prev_coin > 0 else price
             s.fees_paid += fee
-            _log_fill(now, "buy", round(price, 1), f["vol"], fee, 0.0, od["txid"])
-            events.append(f"compra {f['vol']:.6f} @ {price:,.0f}")
-            nxt = {"side": "sell", "price": round(od["price"] * (1 + C.LEVEL_SPACING_PCT), 1),
+            _log_fill(now, "buy", rp(price), f["vol"], fee, 0.0, od["txid"])
+            events.append(f"compra {f['vol']:.6f} @ {fp(price)}")
+            nxt = {"side": "sell", "price": rp(od["price"] * (1 + C.LEVEL_SPACING_PCT)),
                    "qty": round(f["vol"], 8), "level": od["level"] + 1, "txid": ""}
             place(s, nxt)
             new_orders.append(nxt)
@@ -165,9 +192,9 @@ def process_fills(s: State, since: int, now: str) -> list[str]:
             s.fees_paid += fee
             s.realized_pnl += pnl
             s.round_trips += 1
-            _log_fill(now, "sell", round(price, 1), f["vol"], fee, pnl, od["txid"])
-            events.append(f"venta {f['vol']:.6f} @ {price:,.0f} → vuelta #{s.round_trips} {pnl:+.2f}")
-            buy_p = round(od["price"] * (1 - C.LEVEL_SPACING_PCT), 1)
+            _log_fill(now, "sell", rp(price), f["vol"], fee, pnl, od["txid"])
+            events.append(f"venta {f['vol']:.6f} @ {fp(price)} → vuelta #{s.round_trips} {pnl:+.2f}")
+            buy_p = rp(od["price"] * (1 - C.LEVEL_SPACING_PCT))
             if buy_p >= s.range_low:
                 nxt = {"side": "buy", "price": buy_p, "qty": round(f["vol"], 8), "level": od["level"] - 1, "txid": ""}
                 place(s, nxt)
@@ -194,7 +221,7 @@ def reconcile_open(s: State) -> list[str]:
                   "level": 0, "txid": txid}
             if od["side"] in ("buy", "sell") and od["qty"] > 0:
                 s.orders.append(od)
-                events.append(f"adoptada orden {od['side']} {od['qty']:.6f} @ {od['price']:,.0f} ({txid})")
+                events.append(f"adoptada orden {od['side']} {od['qty']:.6f} @ {fp(od['price'])} ({txid})")
         except Exception as e:  # noqa: BLE001
             print(f"[live] no pude adoptar {txid}: {e}")
     return events
@@ -224,7 +251,7 @@ def rebuild(s: State, ohlc: list[dict], price: float, today: str, ordermin: floa
         except Exception as e:  # noqa: BLE001
             events.append(f"ERROR orden {od['side']} {od['qty']} @ {od['price']}: {e}")
     s.orders = placed
-    events.append(f"rango reconstruido {s.range_low:.0f}–{s.range_high:.0f}, centro {price:.0f}, {len(placed)} órdenes reales")
+    events.append(f"rango {pair_cfg()['label']} reconstruido {fp(s.range_low)}–{fp(s.range_high)}, centro {fp(price)}, {len(placed)} órdenes reales")
     return events
 
 
@@ -245,14 +272,17 @@ def range_stop(s: State, ohlc: list[dict], today: str, ordermin: float) -> list[
         sync_balances(s)
         pnl = 0.0
         if s.coin >= ordermin:
-            kp.market_sell(C.PAIR, s.coin, userref=C.LIVE_USERREF)
+            kp.market_sell(_PAIR, s.coin, userref=C.LIVE_USERREF)
             fee = s.coin * last_close * C.FEE_TAKER
             pnl = (last_close - s.avg_cost) * s.coin - fee
             s.realized_pnl += pnl
             s.fees_paid += fee
             _log_fill(today, "sell", last_close, s.coin, fee, pnl, "market-stop")
         s.active, s.stopped_at, s.days_inside = False, today, 0
-        return [f"STOP DE RANGO: cierre {last_close:.0f} < {floor:.0f}. Inventario liquidado a mercado ({pnl:+.2f}). Bot apagado."]
+        events = [f"STOP DE RANGO {pair_cfg()['label']}: cierre {fp(last_close)} < {fp(floor)}. Inventario liquidado a mercado ({pnl:+.2f}). Bot apagado."]
+        s.stop_check_day = today
+        events += try_switch(s, today)
+        return events
     if not s.active:
         if s.stop_check_day == today:          # un solo conteo por día
             return []
@@ -260,18 +290,66 @@ def range_stop(s: State, ohlc: list[dict], today: str, ordermin: float) -> list[
         s.days_inside = s.days_inside + 1 if s.range_low <= last_close <= s.range_high else 0
         if s.days_inside >= C.RESUME_DAYS_INSIDE:
             s.active, s.stopped_at = True, ""
-            return [f"reanudado: {C.RESUME_DAYS_INSIDE} cierres dentro del rango"]
+            return [f"reanudado {pair_cfg()['label']}: {C.RESUME_DAYS_INSIDE} cierres dentro del rango"]
+        return try_switch(s, today)
     return []
+
+
+# --- cambio de par (José, 17 nov 2026) ----------------------------------------------
+
+def candidate_quality(pair: str) -> dict:
+    """Mide si un par está 'en rango': ancho del rango de 14 días y si el último cierre diario cayó dentro."""
+    ohlc = kraken.daily_ohlc(pair, 60)
+    recent = ohlc[-C.RANGE_LOOKBACK_DAYS:]
+    lo, hi = min(c["low"] for c in recent), max(c["high"] for c in recent)
+    close = last_completed_close(ohlc)
+    width = (hi - lo) / lo if lo else 9.9
+    inside = lo <= close <= hi
+    return {"pair": pair, "low": lo, "high": hi, "close": close, "width": width, "inside": inside,
+            "ok": inside and width <= C.SWITCH_MAX_RANGE_PCT}
+
+
+def try_switch(s: State, today: str) -> list[str]:
+    """Con el bot apagado, busca otro par de C.LIVE_PAIRS que esté en rango y lo activa.
+    Nunca con inventario del par anterior (el stop ya lo liquidó)."""
+    if s.coin > 0:
+        return []
+    others = [p for p in C.LIVE_PAIRS if p != s.pair]
+    quals = []
+    for p in others:
+        try:
+            quals.append(candidate_quality(p))
+        except Exception as e:  # noqa: BLE001
+            print(f"[live] no pude evaluar {p}: {e}")
+    ok = sorted([q for q in quals if q["ok"]], key=lambda q: q["width"])
+    if not ok:
+        return [f"sin par alterno en rango ({', '.join(f'{C.LIVE_PAIRS[q['pair']]['label']} ancho {q['width']:.0%}' for q in quals) or 'sin datos'})"]
+    best = ok[0]
+    old = pair_cfg(s.pair)["label"]
+    s.pair = best["pair"]
+    s.range_low = s.range_high = 0.0
+    s.range_built, s.center = "", 0.0
+    s.orders, s.coin, s.avg_cost = [], 0.0, 0.0
+    s.active, s.stopped_at, s.days_inside = True, "", 0
+    info = kraken.pair_info(s.pair)
+    set_pair(s.pair, info.get("pair_decimals", 1))
+    return [f"CAMBIO DE PAR: {old} → {pair_cfg()['label']} (rango 14d {fp(best['low'])}–{fp(best['high'])}, ancho {best['width']:.0%}, cierre dentro). Grid nuevo en el próximo paso."]
 
 
 # --- tick --------------------------------------------------------------------------
 
+def _load_pair(s: State) -> tuple[dict, list[dict], dict, float]:
+    info = kraken.pair_info(s.pair)
+    set_pair(s.pair, info.get("pair_decimals", 1))
+    t = kraken.ticker(s.pair)
+    ohlc = kraken.daily_ohlc(s.pair, 60)
+    ordermin = max(info["ordermin"], pair_cfg()["min_order"])
+    return t, ohlc, info, ordermin
+
+
 def tick(now_iso: str, today: str) -> tuple[State, float, list[str]]:
     s = load_state()
-    t = kraken.ticker(C.PAIR)
-    ohlc = kraken.daily_ohlc(C.PAIR, 60)
-    info = kraken.pair_info(C.PAIR)
-    ordermin = max(info["ordermin"], C.LIVE_MIN_ORDER_BTC)
+    t, ohlc, info, ordermin = _load_pair(s)
     price = t["last"]
     events: list[str] = []
     first_run = not s.last_check
@@ -285,8 +363,13 @@ def tick(now_iso: str, today: str) -> tuple[State, float, list[str]]:
     except Exception as e:  # noqa: BLE001
         events.append(f"ERROR conciliando: {e}")
     try:
+        pair_before = s.pair
         if s.range_low and s.range_built != today:
             events += range_stop(s, ohlc, today, ordermin)
+        if s.pair != pair_before:                     # cambió de par: recargar datos del nuevo
+            t, ohlc, info, ordermin = _load_pair(s)
+            price = t["last"]
+            sync_balances(s)
         if s.active and (not s.range_low or s.range_built != today):
             events += rebuild(s, ohlc, price, today, ordermin)
     except Exception as e:  # noqa: BLE001
@@ -304,9 +387,9 @@ def tick(now_iso: str, today: str) -> tuple[State, float, list[str]]:
         if placed:
             s.center = price
             s.orders = placed
-            events.append(f"grid recentrado en {price:.0f}: {len(placed)} órdenes reales")
+            events.append(f"grid recentrado en {fp(price)}: {len(placed)} órdenes reales")
     if first_run:
-        events.insert(0, f"LIVE activo: saldo USD {s.cash:.2f}, BTC {s.coin:.6f}, mínimo de orden {ordermin} BTC")
+        events.insert(0, f"LIVE activo ({pair_cfg()['label']}): saldo USD {s.cash:.2f}, moneda {s.coin:.6f}, mínimo de orden {ordermin}")
     s.last_price, s.last_check = price, now_iso
     for e in events:
         s.log.append(f"{now_iso[5:16].replace('T', ' ')} {e}")
@@ -326,8 +409,12 @@ def status_text(s: State, price: float) -> str:
     dist_high = (s.range_high - price) / price if s.range_high else 0
     buys = sum(1 for o in s.orders if o["side"] == "buy")
     sells = sum(1 for o in s.orders if o["side"] == "sell")
-    return (f"LIVE {C.PAIR_LABEL} {price:,.0f} · {'ACTIVO' if s.active else 'APAGADO'}\n"
+    cfg = pair_cfg(s.pair)
+    if _PAIR != s.pair:                      # --status sin red: decimales de la config
+        set_pair(s.pair, cfg.get("decimals", 1))
+    coin_name = cfg["label"].split("/")[0]
+    return (f"LIVE {cfg['label']} {fp(price)} · {'ACTIVO' if s.active else 'APAGADO'}\n"
             f"equity ${eq:,.2f} ({eq - C.LIVE_CAPITAL_USD:+.2f}) · realizado ${s.realized_pnl:+.2f} · comisiones ${s.fees_paid:.2f}\n"
-            f"vueltas {s.round_trips} · inventario {s.coin:.6f} BTC ({inv_pct:.0%}) costo prom. {s.avg_cost:,.0f}\n"
-            f"rango {s.range_low:,.0f}–{s.range_high:,.0f} (borde bajo a {dist_low:.1%}, alto a {dist_high:.1%})\n"
+            f"vueltas {s.round_trips} · inventario {s.coin:.6f} {coin_name} ({inv_pct:.0%}) costo prom. {fp(s.avg_cost)}\n"
+            f"rango {fp(s.range_low)}–{fp(s.range_high)} (borde bajo a {dist_low:.1%}, alto a {dist_high:.1%})\n"
             f"órdenes reales: {buys} compras / {sells} ventas")

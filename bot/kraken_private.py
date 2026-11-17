@@ -96,13 +96,13 @@ def live_enabled() -> bool:
 
 
 def add_order(pair: str, side: str, volume: float, price: float, post_only: bool = True,
-              userref: int | None = None) -> dict:
+              userref: int | None = None, price_decimals: int = 1) -> dict:
     """Orden límite. `side` = buy | sell. post_only garantiza comisión maker (si cruzaría, se rechaza)."""
     if not live_enabled():
         raise PermissionError("LIVE=false: orden bloqueada (fase papel)")
     data: dict[str, Any] = {
         "pair": pair, "type": side, "ordertype": "limit",
-        "volume": f"{volume:.8f}", "price": f"{price:.1f}",
+        "volume": f"{volume:.8f}", "price": f"{price:.{price_decimals}f}",
     }
     if post_only:
         data["oflags"] = "post"

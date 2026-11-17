@@ -19,7 +19,7 @@ class FakeKraken:
     def trades_history(self, start=None):
         return dict(self.trades)
 
-    def add_order(self, pair, side, volume, price, post_only=True, userref=None):
+    def add_order(self, pair, side, volume, price, post_only=True, userref=None, price_decimals=1):
         self.n += 1
         txid = f"T{self.n}"
         self.open[txid] = {"userref": userref, "descr": {"type": side, "price": str(price)}, "vol": str(volume)}
@@ -60,6 +60,7 @@ def _patch(monkeypatch, fk, price=73000.0, tmp_path=None):
             for i in range(60)]
     monkeypatch.setattr(kraken, "daily_ohlc", lambda pair, days=60: ohlc)
     monkeypatch.setattr(kraken, "pair_info", lambda pair: {"ordermin": 0.00005, "pair_decimals": 1, "lot_decimals": 8})
+    live.set_pair("XBTUSD", 1)
     monkeypatch.setattr(live, "DATA", tmp_path)
     monkeypatch.setattr(live, "STATE", tmp_path / "live_state.json")
     monkeypatch.setattr(live, "FILLS", tmp_path / "live_fills.jsonl")
@@ -96,3 +97,46 @@ def test_first_tick_places_buys_and_round_trip(tmp_path, monkeypatch):
 def test_orders_blocked_when_live_false(monkeypatch):
     monkeypatch.setenv("LIVE", "false")
     assert kp.live_enabled() is False
+
+
+def test_stop_switches_to_trx_when_in_range(tmp_path, monkeypatch):
+    """BTC cierra bajo el stop → liquida, se apaga y pasa a TRX si TRX está en rango (José, 17 nov 2026)."""
+    fk = FakeKraken(usd=50.0)
+    _patch(monkeypatch, fk, tmp_path=tmp_path)
+    btc_ohlc = [{"time": i, "open": 70000, "high": 72000, "low": 68000, "close": 70000, "volume": 1} for i in range(60)]
+    btc_ohlc[-1]["close"] = 60000      # último cierre completo muy por debajo del borde inferior
+    trx_ohlc = [{"time": i, "open": 0.31, "high": 0.32, "low": 0.30, "close": 0.31, "volume": 1} for i in range(60)]
+    data = {"XBTUSD": btc_ohlc, "TRXUSD": trx_ohlc}
+    monkeypatch.setattr(kraken, "daily_ohlc", lambda pair, days=60: data[pair])
+    monkeypatch.setattr(kraken, "ticker", lambda pair: {"bid": 0.3099, "ask": 0.3101, "last": 0.31} if pair == "TRXUSD"
+                        else {"bid": 59995.0, "ask": 60005.0, "last": 60000.0})
+    monkeypatch.setattr(kraken, "pair_info", lambda pair: {"ordermin": 20.0, "pair_decimals": 5, "lot_decimals": 8}
+                        if pair == "TRXUSD" else {"ordermin": 0.00005, "pair_decimals": 1, "lot_decimals": 8})
+    # estado previo: grid de BTC construido ayer, activo
+    s = live.State(active=True, cash=50.0, coin=0.0, range_low=68000.0, range_high=72000.0, range_built="2026-11-16",
+                   last_check="2026-11-16T23:45:00+00:00", pair="XBTUSD")
+    live.save_state(s)
+    s, price, ev = live.tick("2026-11-17T00:05:00+00:00", "2026-11-17")
+    assert any("STOP DE RANGO BTC/USD" in e for e in ev)
+    assert any("CAMBIO DE PAR: BTC/USD → TRX/USD" in e for e in ev)
+    assert s.pair == "TRXUSD" and s.active
+    assert s.range_low == 0.30 and s.range_high == 0.32
+    buys = [o for o in s.orders if o["side"] == "buy"]
+    assert buys and all(len(str(o["price"]).split(".")[-1]) <= 5 for o in buys)   # precios con decimales de TRX
+    assert all(o["price"] < 0.31 for o in buys)
+
+
+def test_no_switch_when_other_pair_out_of_range(tmp_path, monkeypatch):
+    fk = FakeKraken(usd=50.0)
+    _patch(monkeypatch, fk, tmp_path=tmp_path)
+    btc_ohlc = [{"time": i, "open": 70000, "high": 72000, "low": 68000, "close": 70000, "volume": 1} for i in range(60)]
+    btc_ohlc[-1]["close"] = 60000
+    trx_ohlc = [{"time": i, "open": 0.31, "high": 0.40, "low": 0.30, "close": 0.29, "volume": 1} for i in range(60)]  # ancho 33%, cierre fuera
+    data = {"XBTUSD": btc_ohlc, "TRXUSD": trx_ohlc}
+    monkeypatch.setattr(kraken, "daily_ohlc", lambda pair, days=60: data[pair])
+    s = live.State(active=True, cash=50.0, coin=0.0, range_low=68000.0, range_high=72000.0, range_built="2026-11-16",
+                   last_check="2026-11-16T23:45:00+00:00", pair="XBTUSD")
+    live.save_state(s)
+    s, price, ev = live.tick("2026-11-17T00:05:00+00:00", "2026-11-17")
+    assert any("sin par alterno" in e for e in ev)
+    assert s.pair == "XBTUSD" and not s.active
