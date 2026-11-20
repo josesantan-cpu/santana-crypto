@@ -5,22 +5,22 @@
  "avg_cost": 0.0,
  "range_low": 0.302021,
  "range_high": 0.320536,
- "range_built": "2026-11-19",
- "center": 0.309637,
+ "range_built": "2026-11-20",
+ "center": 0.310312,
  "orders": [
   {
    "side": "buy",
-   "price": 0.306541,
-   "qty": 40.77757951,
+   "price": 0.307209,
+   "qty": 40.68891211,
    "level": -1,
-   "txid": "O7KQ5G-KF4AW-XQF6QS"
+   "txid": "OXA2U5-QAHA6-YMDRBC"
   },
   {
    "side": "buy",
-   "price": 0.303475,
-   "qty": 41.18955433,
+   "price": 0.304137,
+   "qty": 41.09989906,
    "level": -2,
-   "txid": "ODZXTT-RUGO4-5UDUS5"
+   "txid": "ODSBUE-FWKYA-7CMMIW"
   }
  ],
  "round_trips": 0,
@@ -29,8 +29,8 @@
  "days_inside": 0,
  "stopped_at": "",
  "stop_check_day": "2026-11-17",
- "last_price": 0.310108,
- "last_check": "2026-11-19T23:57:23.635559+00:00",
+ "last_price": 0.310312,
+ "last_check": "2026-11-20T00:12:26.212209+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
@@ -51,7 +51,8 @@
   "11-17 04:16 rango TRX/USD reconstruido 0.302021\u20130.322611, centro 0.304585, 0 \u00f3rdenes reales",
   "11-17 05:02 grid recentrado en 0.306040: 1 \u00f3rdenes reales",
   "11-18 00:01 rango TRX/USD reconstruido 0.302021\u20130.320536, centro 0.307900, 1 \u00f3rdenes reales",
-  "11-19 00:08 rango TRX/USD reconstruido 0.302021\u20130.320536, centro 0.309637, 2 \u00f3rdenes reales"
+  "11-19 00:08 rango TRX/USD reconstruido 0.302021\u20130.320536, centro 0.309637, 2 \u00f3rdenes reales",
+  "11-20 00:12 rango TRX/USD reconstruido 0.302021\u20130.320536, centro 0.310312, 2 \u00f3rdenes reales"
  ],
  "pair": "TRXUSD"
 }
