@@ -4,3 +4,4 @@
 {"ts": "2026-11-14T02:34:18.987329+00:00", "side": "buy", "price": 67671.3, "qty": 0.00018472, "fee": 0.05, "pnl": 0.0, "txid": "OCVX6I-UKD24-BAOSNE"}
 {"ts": "2026-11-15", "side": "sell", "price": 64115.1, "qty": 0.0003673, "fee": 0.0612, "pnl": -1.5117, "txid": "market-stop"}
 {"ts": "2026-11-20T11:29:05.593386+00:00", "side": "buy", "price": 0.307209, "qty": 40.68891211, "fee": 0.05, "pnl": 0.0, "txid": "OXA2U5-QAHA6-YMDRBC"}
+{"ts": "2026-11-20T15:29:58.037123+00:00", "side": "buy", "price": 0.304137, "qty": 41.09989906, "fee": 0.05, "pnl": 0.0, "txid": "ODSBUE-FWKYA-7CMMIW"}
