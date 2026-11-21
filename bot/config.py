@@ -34,10 +34,12 @@ LIVE_MIN_ORDER_BTC = 0.00005    # mínimo de Kraken para XBT (se confirma en viv
 
 # Pares LIVE (José, 17 nov 2026: "Configura el bot para que haga trades con TRX o BTC, así si una se sale de rango
 # no tengo que esperar a que vuelva ya que continuamos con la otra"). UN par a la vez con los mismos $50:
-# cuando el par activo se apaga por stop de rango, el bot pasa al otro si ese está en rango.
+# cuando el par activo se apaga por stop de rango, el bot pasa a otro si está en rango (el de rango más estrecho).
 LIVE_PAIRS = {
     "XBTUSD": {"label": "BTC/USD", "assets": ("XXBT", "XBT"), "names": ("XBTUSD", "XXBTZUSD"), "min_order": 0.00005, "decimals": 1},
     "TRXUSD": {"label": "TRX/USD", "assets": ("TRX",), "names": ("TRXUSD", "TRXZUSD"), "min_order": 0.0, "decimals": 5},
+    # José, 21 nov 2026: "Añade a eth". Tercer par alterno; solo entra si califica (rango 14d ≤ 20% y cierre dentro).
+    "ETHUSD": {"label": "ETH/USD", "assets": ("XETH", "ETH"), "names": ("ETHUSD", "XETHZUSD"), "min_order": 0.002, "decimals": 2},
 }
 LIVE_DEFAULT_PAIR = "XBTUSD"
 SWITCH_MAX_RANGE_PCT = 0.20     # el par alterno califica si su rango de 14 días mide ≤ 20% (alto−bajo)/bajo

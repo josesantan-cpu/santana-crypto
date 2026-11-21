@@ -140,3 +140,28 @@ def test_no_switch_when_other_pair_out_of_range(tmp_path, monkeypatch):
     s, price, ev = live.tick("2026-11-17T00:05:00+00:00", "2026-11-17")
     assert any("sin par alterno" in e for e in ev)
     assert s.pair == "XBTUSD" and not s.active
+
+
+def test_trx_stop_switches_to_eth_when_eth_in_range(tmp_path, monkeypatch):
+    """Tercer par (José, 21 nov 2026: "Añade a eth"): TRX se apaga, BTC fuera de rango, ETH en rango → pasa a ETH."""
+    fk = FakeKraken(usd=50.0)
+    _patch(monkeypatch, fk, tmp_path=tmp_path)
+    trx_ohlc = [{"time": i, "open": 0.31, "high": 0.32, "low": 0.30, "close": 0.31, "volume": 1} for i in range(60)]
+    trx_ohlc[-1]["close"] = 0.27
+    btc_ohlc = [{"time": i, "open": 70000, "high": 90000, "low": 60000, "close": 70000, "volume": 1} for i in range(60)]
+    eth_ohlc = [{"time": i, "open": 1700, "high": 1800, "low": 1600, "close": 1700, "volume": 1} for i in range(60)]
+    data = {"XBTUSD": btc_ohlc, "TRXUSD": trx_ohlc, "ETHUSD": eth_ohlc}
+    monkeypatch.setattr(kraken, "daily_ohlc", lambda pair, days=60: data[pair])
+    monkeypatch.setattr(kraken, "ticker", lambda pair: {"bid": 1699.5, "ask": 1700.5, "last": 1700.0} if pair == "ETHUSD"
+                        else {"bid": 0.2699, "ask": 0.2701, "last": 0.27})
+    monkeypatch.setattr(kraken, "pair_info", lambda pair: {"ordermin": 0.002, "pair_decimals": 2, "lot_decimals": 8}
+                        if pair == "ETHUSD" else {"ordermin": 20.0, "pair_decimals": 5, "lot_decimals": 8})
+    s = live.State(active=True, cash=50.0, coin=0.0, range_low=0.30, range_high=0.32, range_built="2026-11-20",
+                   last_check="2026-11-20T23:45:00+00:00", pair="TRXUSD")
+    live.save_state(s)
+    s, price, ev = live.tick("2026-11-21T00:05:00+00:00", "2026-11-21")
+    assert any("CAMBIO DE PAR: TRX/USD → ETH/USD" in e for e in ev)
+    assert s.pair == "ETHUSD" and s.active
+    buys = [o for o in s.orders if o["side"] == "buy"]
+    assert buys and all(o["price"] < 1700 for o in buys)
+    assert all(len(str(o["price"]).split(".")[-1]) <= 2 for o in buys)

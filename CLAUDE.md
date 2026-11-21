@@ -16,6 +16,8 @@
   "Configura el bot para que haga trades con TRX o BTC, así si una se sale de rango no tengo que esperar a que vuelva".
   Al apagarse un par por stop, `live.try_switch` pasa al otro si su rango de 14 días mide ≤ 20% y el último cierre
   cayó dentro. Agregar un tercer par requiere nueva aprobación escrita. El par activo vive en `live_state.json["pair"]`.
+  21 nov 2026: José aprobó un tercer par alterno: "Añade a eth" (ETH/USD en `LIVE_PAIRS`). Mismo capital, un par a la vez;
+  ETH solo entra vía `try_switch` si califica. Un cuarto par requiere nueva aprobación escrita.
 - Estado vivo en `data/live_state.json` / `data/live_fills.jsonl`; el papel sigue en `data/state.json`.
   Al preguntar "cómo va el bot de cripto" con LIVE activo, reportar el estado LIVE.
 - Rutas de Kraken: solo las documentadas en docs.kraken.com (públicas y privadas listadas en kraken_private.py).
