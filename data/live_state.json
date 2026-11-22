@@ -3,24 +3,38 @@
  "cash": 35.42,
  "coin": 40.89440558,
  "avg_cost": 0.3056652816243643,
- "range_low": 0.300559,
- "range_high": 0.320536,
- "range_built": "2026-11-21",
- "center": 0.301399,
+ "range_low": 0.298277,
+ "range_high": 0.319924,
+ "range_built": "2026-11-22",
+ "center": 0.304642,
  "orders": [
   {
    "side": "buy",
-   "price": 0.301369,
-   "qty": 40.89440559,
-   "level": 0,
-   "txid": "OBDDKM-WJS6D-M4KC6V"
+   "price": 0.301596,
+   "qty": 41.44617303,
+   "level": -1,
+   "txid": "O4ESMW-TUAF5-W7HFYY"
+  },
+  {
+   "side": "buy",
+   "price": 0.29858,
+   "qty": 41.86482685,
+   "level": -2,
+   "txid": "OZ464X-XIW2O-V54BLS"
   },
   {
    "side": "sell",
-   "price": 0.307457,
-   "qty": 40.89440558,
+   "price": 0.307688,
+   "qty": 20.44720279,
+   "level": 1,
+   "txid": "OUQRO4-IQZL7-5MG3A2"
+  },
+  {
+   "side": "sell",
+   "price": 0.310765,
+   "qty": 20.44720279,
    "level": 2,
-   "txid": "O7MB7L-I45EI-BPX3XE"
+   "txid": "OY766K-NTZFJ-YMZTZS"
   }
  ],
  "round_trips": 1,
@@ -29,8 +43,8 @@
  "days_inside": 0,
  "stopped_at": "",
  "stop_check_day": "2026-11-17",
- "last_price": 0.304867,
- "last_check": "2026-11-21T23:53:23.132156+00:00",
+ "last_price": 0.304642,
+ "last_check": "2026-11-22T00:08:26.340054+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
@@ -56,7 +70,8 @@
   "11-20 11:29 compra 40.688912 @ 0.307209",
   "11-20 15:29 compra 41.099899 @ 0.304137",
   "11-21 00:05 rango TRX/USD reconstruido 0.300559\u20130.320536, centro 0.301399, 2 \u00f3rdenes reales",
-  "11-21 13:41 venta 40.894406 @ 0.304413 \u2192 vuelta #1 -0.12"
+  "11-21 13:41 venta 40.894406 @ 0.304413 \u2192 vuelta #1 -0.12",
+  "11-22 00:08 rango TRX/USD reconstruido 0.298277\u20130.319924, centro 0.304642, 4 \u00f3rdenes reales"
  ],
  "pair": "TRXUSD"
 }
