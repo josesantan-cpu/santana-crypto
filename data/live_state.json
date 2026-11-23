@@ -5,36 +5,36 @@
  "avg_cost": 0.3056652816243643,
  "range_low": 0.298277,
  "range_high": 0.319924,
- "range_built": "2026-11-22",
- "center": 0.304642,
+ "range_built": "2026-11-23",
+ "center": 0.304975,
  "orders": [
   {
    "side": "buy",
-   "price": 0.301596,
-   "qty": 41.44617303,
+   "price": 0.301925,
+   "qty": 41.40101018,
    "level": -1,
-   "txid": "O4ESMW-TUAF5-W7HFYY"
+   "txid": "OI3PF3-DGDY7-QEWAS5"
   },
   {
    "side": "buy",
-   "price": 0.29858,
-   "qty": 41.86482685,
+   "price": 0.298906,
+   "qty": 41.81916723,
    "level": -2,
-   "txid": "OZ464X-XIW2O-V54BLS"
+   "txid": "OTYGCI-OJ64L-B3EEG7"
   },
   {
    "side": "sell",
-   "price": 0.307688,
+   "price": 0.308025,
    "qty": 20.44720279,
    "level": 1,
-   "txid": "OUQRO4-IQZL7-5MG3A2"
+   "txid": "O67ILV-UM6PU-CKAQ7V"
   },
   {
    "side": "sell",
-   "price": 0.310765,
+   "price": 0.311105,
    "qty": 20.44720279,
    "level": 2,
-   "txid": "OY766K-NTZFJ-YMZTZS"
+   "txid": "OPK455-YRN2A-4OCISO"
   }
  ],
  "round_trips": 1,
@@ -43,8 +43,8 @@
  "days_inside": 0,
  "stopped_at": "",
  "stop_check_day": "2026-11-17",
- "last_price": 0.305225,
- "last_check": "2026-11-22T23:59:13.824597+00:00",
+ "last_price": 0.304975,
+ "last_check": "2026-11-23T00:14:16.596179+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
@@ -71,7 +71,8 @@
   "11-20 15:29 compra 41.099899 @ 0.304137",
   "11-21 00:05 rango TRX/USD reconstruido 0.300559\u20130.320536, centro 0.301399, 2 \u00f3rdenes reales",
   "11-21 13:41 venta 40.894406 @ 0.304413 \u2192 vuelta #1 -0.12",
-  "11-22 00:08 rango TRX/USD reconstruido 0.298277\u20130.319924, centro 0.304642, 4 \u00f3rdenes reales"
+  "11-22 00:08 rango TRX/USD reconstruido 0.298277\u20130.319924, centro 0.304642, 4 \u00f3rdenes reales",
+  "11-23 00:14 rango TRX/USD reconstruido 0.298277\u20130.319924, centro 0.304975, 4 \u00f3rdenes reales"
  ],
  "pair": "TRXUSD"
 }
