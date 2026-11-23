@@ -165,3 +165,21 @@ def test_trx_stop_switches_to_eth_when_eth_in_range(tmp_path, monkeypatch):
     buys = [o for o in s.orders if o["side"] == "buy"]
     assert buys and all(o["price"] < 1700 for o in buys)
     assert all(len(str(o["price"]).split(".")[-1]) <= 2 for o in buys)
+
+
+def test_second_sell_after_inventory_empty_uses_avg_cost(tmp_path, monkeypatch):
+    """Dos ventas llenadas en el mismo paso dejan el inventario en 0: la segunda no debe contabilizarse con costo 0."""
+    fk = FakeKraken(usd=35.0)
+    _patch(monkeypatch, fk, tmp_path=tmp_path)
+    live.set_pair("TRXUSD", 5)
+    s = live.State(active=True, cash=35.0, coin=0.0, avg_cost=0.3, pair="TRXUSD",
+                   orders=[{"side": "sell", "price": 0.31, "qty": 20.0, "level": 1, "txid": "S1"}])
+    monkeypatch.setattr(live.kp, "trades_history", lambda start=None: {
+        "T1": {"pair": "TRXUSD", "ordertxid": "S1", "vol": "20.0", "cost": "6.2", "fee": "0.02", "type": "sell"}})
+    monkeypatch.setattr(live, "place", lambda st, od: "X")
+    monkeypatch.setattr(live.kp, "balance", lambda: {"ZUSD": 41.18, "TRX": 0.0})
+    live.sync_balances(s)                            # el saldo ya refleja la venta: inventario 0
+    assert s.avg_cost == 0.3                         # el costo promedio sigue disponible para contabilizar
+    ev = live.process_fills(s, 0, "2026-11-23T16:00:00+00:00")
+    assert s.realized_pnl < 0.5                     # (0.31-0.30)*20 = 0.20 menos comisiones, no 6.2
+    assert s.avg_cost == 0.0                         # se reinicia después de contabilizar

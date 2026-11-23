@@ -38,7 +38,7 @@
   }
  ],
  "round_trips": 3,
- "realized_pnl": 4.166159791036616,
+ "realized_pnl": -2.09384,
  "fees_paid": 0.44293787743519997,
  "days_inside": 0,
  "stopped_at": "",
@@ -74,7 +74,8 @@
   "11-22 00:08 rango TRX/USD reconstruido 0.298277\u20130.319924, centro 0.304642, 4 \u00f3rdenes reales",
   "11-23 00:14 rango TRX/USD reconstruido 0.298277\u20130.319924, centro 0.304975, 4 \u00f3rdenes reales",
   "11-23 14:05 venta 20.447203 @ 0.308025 \u2192 vuelta #2 +0.01",
-  "11-23 16:21 venta 20.447203 @ 0.311105 \u2192 vuelta #3 +6.34"
+  "11-23 16:21 venta 20.447203 @ 0.311105 \u2192 vuelta #3 +6.34",
+  "11-23 correcci\u00f3n contable: la vuelta #3 se registr\u00f3 +6.34 por error (costo promedio borrado antes de contabilizar la venta); real +0.08"
  ],
  "pair": "TRXUSD"
 }

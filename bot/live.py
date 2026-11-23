@@ -130,7 +130,7 @@ def sync_balances(s: State) -> None:
     s.cash = round(b.get("ZUSD", 0.0) + b.get("USD", 0.0), 2)
     s.coin = round(sum(b.get(a, 0.0) for a in pair_cfg()["assets"]), 8)
     if s.coin <= 1e-9:
-        s.coin, s.avg_cost = 0.0, 0.0
+        s.coin = 0.0   # avg_cost NO se borra aquí: process_fills lo necesita para las ventas recién llenadas
 
 
 def place(s: State, od: dict) -> str:
@@ -200,6 +200,8 @@ def process_fills(s: State, since: int, now: str) -> list[str]:
                 place(s, nxt)
                 new_orders.append(nxt)
     s.orders = new_orders
+    if s.coin <= 1e-9:
+        s.avg_cost = 0.0   # inventario agotado: se reinicia el costo promedio después de contabilizar las ventas
     return events
 
 
