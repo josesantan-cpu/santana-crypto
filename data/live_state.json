@@ -4,37 +4,23 @@
  "coin": 0.0,
  "avg_cost": 0.0,
  "range_low": 0.298277,
- "range_high": 0.319924,
- "range_built": "2026-11-23",
- "center": 0.304975,
+ "range_high": 0.31812,
+ "range_built": "2026-11-24",
+ "center": 0.309706,
  "orders": [
   {
    "side": "buy",
-   "price": 0.301925,
-   "qty": 41.40101018,
+   "price": 0.306609,
+   "qty": 40.76853582,
    "level": -1,
-   "txid": "OI3PF3-DGDY7-QEWAS5"
+   "txid": "OFMOTB-3NQ2Y-7NU7MU"
   },
   {
    "side": "buy",
-   "price": 0.298906,
-   "qty": 41.81916723,
+   "price": 0.303543,
+   "qty": 41.180327,
    "level": -2,
-   "txid": "OTYGCI-OJ64L-B3EEG7"
-  },
-  {
-   "side": "buy",
-   "price": 0.304945,
-   "qty": 20.44720279,
-   "level": 0,
-   "txid": "OGR3PQ-C2WBF-MQ5BQ5"
-  },
-  {
-   "side": "buy",
-   "price": 0.307994,
-   "qty": 20.44720279,
-   "level": 1,
-   "txid": "OY24KL-5QOJY-OHITV6"
+   "txid": "OQ2XKZ-DAIIM-QOF4Y7"
   }
  ],
  "round_trips": 3,
@@ -43,8 +29,8 @@
  "days_inside": 0,
  "stopped_at": "",
  "stop_check_day": "2026-11-17",
- "last_price": 0.309482,
- "last_check": "2026-11-23T23:55:00.125665+00:00",
+ "last_price": 0.309706,
+ "last_check": "2026-11-24T00:10:02.957002+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
@@ -75,7 +61,8 @@
   "11-23 00:14 rango TRX/USD reconstruido 0.298277\u20130.319924, centro 0.304975, 4 \u00f3rdenes reales",
   "11-23 14:05 venta 20.447203 @ 0.308025 \u2192 vuelta #2 +0.01",
   "11-23 16:21 venta 20.447203 @ 0.311105 \u2192 vuelta #3 +6.34",
-  "11-23 correcci\u00f3n contable: la vuelta #3 se registr\u00f3 +6.34 por error (costo promedio borrado antes de contabilizar la venta); real +0.08"
+  "11-23 correcci\u00f3n contable: la vuelta #3 se registr\u00f3 +6.34 por error (costo promedio borrado antes de contabilizar la venta); real +0.08",
+  "11-24 00:10 rango TRX/USD reconstruido 0.298277\u20130.318120, centro 0.309706, 2 \u00f3rdenes reales"
  ],
  "pair": "TRXUSD"
 }
