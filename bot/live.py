@@ -111,7 +111,12 @@ def plan_grid(s: State, price: float, ohlc: list[dict], ordermin: float, allow_b
             if remaining < ordermin:
                 break
             p = rp(price * (1 + C.LEVEL_SPACING_PCT) ** i)
-            if p > s.range_high:
+            if p > s.range_high and i > 1:
+                # el siguiente nivel cae fuera del rango: lo que queda se suma a la venta anterior
+                # (antes se quedaba sin orden de venta; con 2% de distancia pasa más a menudo)
+                last = next(o for o in reversed(out) if o["side"] == "sell")
+                last["qty"] = round(last["qty"] + remaining, 8)
+                remaining = 0.0
                 break
             qty = round(min(q, remaining), 8)
             out.append({"side": "sell", "price": p, "qty": qty, "level": i, "txid": ""})

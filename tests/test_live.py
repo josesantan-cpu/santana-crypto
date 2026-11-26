@@ -86,7 +86,7 @@ def test_first_tick_places_buys_and_round_trip(tmp_path, monkeypatch):
     fk.fill(first["txid"], first["price"])
     s, price, ev = live.tick("2026-11-12T17:15:00+00:00", "2026-11-12")
     sells = [o for o in s.orders if o["side"] == "sell"]
-    assert len(sells) == 1 and abs(sells[0]["price"] - round(first["price"] * 1.01, 1)) < 0.2
+    assert len(sells) == 1 and abs(sells[0]["price"] - round(first["price"] * (1 + C.LEVEL_SPACING_PCT), 1)) < 0.2
     assert s.coin > 0 and s.avg_cost > 0
     # llena la venta → vuelta completa con P&L positivo neto de comisiones
     fk.fill(sells[0]["txid"], sells[0]["price"])
@@ -231,3 +231,16 @@ def test_tape_error_does_not_block(tmp_path, monkeypatch):
     monkeypatch.setattr(signals, "kraken_trade_flow", boom)
     s, price, ev = live.tick("2026-11-12T17:00:00+00:00", "2026-11-12")
     assert [o for o in s.orders if o["side"] == "buy"]
+
+
+def test_all_inventory_gets_a_sell_order_when_range_is_narrow():
+    """Con 2% de distancia y rango estrecho (TRX), todo el inventario debe quedar a la venta."""
+    live.set_pair("TRXUSD", 6)
+    s = live.State(active=True, cash=35.48, coin=41.03513592, avg_cost=0.304617,
+                   range_low=0.298277, range_high=0.315421, pair="TRXUSD")
+    ohlc = [{"time": i, "open": 0.30, "high": 0.31, "low": 0.298, "close": 0.30, "volume": 1} for i in range(60)]
+    plan = live.plan_grid(s, 0.303762, ohlc, ordermin=10.0)
+    sells = [o for o in plan if o["side"] == "sell"]
+    assert sells and abs(sum(o["qty"] for o in sells) - s.coin) < 1e-6
+    assert all(o["price"] >= round(0.303762 * (1 + C.LEVEL_SPACING_PCT), 6) for o in sells)
+    live.set_pair("XBTUSD", 1)

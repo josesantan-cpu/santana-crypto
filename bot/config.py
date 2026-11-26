@@ -11,11 +11,13 @@ PAIR_LABEL = "BTC/USD"
 CAPITAL_USD = 500.0             # capital asignado al grid (papel)
 MAX_INVENTORY_PCT = 0.50        # nunca más del 50% del capital en moneda
 N_LEVELS = 10                   # niveles de compra bajo el precio + niveles de venta arriba
-LEVEL_SPACING_PCT = 0.01        # 1% entre niveles (vuelta neta ≈ 1% − comisiones)
+LEVEL_SPACING_PCT = 0.02        # 2% entre niveles (José, 26 nov 2026: "Corrige esos últimos dos"). Antes 1%: con 0.8% de
+                                # comisión por vuelta quedaban ~2 centavos. Con 2% la vuelta neta ≈ 1.2% (simulación 20–26 nov).
 
-# Comisiones (Kraken spot, maker/taker nivel base). Se descuentan en papel igual que en vivo.
-FEE_MAKER = 0.0016
-FEE_TAKER = 0.0026
+# Comisiones: las que Kraken cobró de verdad en LIVE (0.4% por lado en compras y ventas, 12–25 nov 2026).
+# José, 26 nov 2026, aprobó usar la comisión real (antes 0.16% / 0.26%, que subestimaba el costo).
+FEE_MAKER = 0.004
+FEE_TAKER = 0.004
 USE_MAKER = True                # órdenes límite que esperan → maker
 
 # Rango adaptativo

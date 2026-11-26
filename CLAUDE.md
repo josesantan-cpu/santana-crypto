@@ -21,8 +21,10 @@
   26 nov 2026: José pidió usar el tape como filtro: "Lee el tape antes de cada entrada y salida, utiliza ese indicador para
   que el bot sepa cuando entrar o salir dependiendo del volumen de compra y venta". Implementado solo para ENTRADAS
   (`TAPE_FILTER`, `TAPE_SELL_PRESSURE = 0.40` en config): con ≥60% de ventas en los últimos ~1000 trades no se compra y se
-  retiran las compras que esperan. Las salidas no se tocan (los datos 14–26 nov no lo justifican). Cambios de distancia (2%),
-  filtro de tendencia y comisión real (0.4%) siguen PENDIENTES de aprobación escrita.
+  retiran las compras que esperan. Las salidas no se tocan (los datos 14–26 nov no lo justifican).
+  26 nov 2026: José aprobó "Corrige esos últimos dos": `LEVEL_SPACING_PCT = 0.02` (antes 0.01) y comisión real
+  `FEE_MAKER = FEE_TAKER = 0.004` (antes 0.0016/0.0026). El filtro de tendencia (`LIVE_IGNORE_TREND`) sigue igual;
+  cambiarlo requiere aprobación escrita.
 - Estado vivo en `data/live_state.json` / `data/live_fills.jsonl`; el papel sigue en `data/state.json`.
   Al preguntar "cómo va el bot de cripto" con LIVE activo, reportar el estado LIVE.
 - Rutas de Kraken: solo las documentadas en docs.kraken.com (públicas y privadas listadas en kraken_private.py).
