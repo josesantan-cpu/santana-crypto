@@ -18,7 +18,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from . import config as C
-from . import grid, kraken, kraken_private as kp
+from . import grid, kraken, kraken_private as kp, signals
 from .grid import State
 
 DATA = grid.DATA
@@ -88,11 +88,11 @@ def level_plan(price: float, ordermin: float) -> tuple[int, float]:
     return n, per
 
 
-def plan_grid(s: State, price: float, ohlc: list[dict], ordermin: float) -> list[dict]:
-    """Niveles a colocar (sin enviar): compras bajo el precio si la tendencia lo permite,
+def plan_grid(s: State, price: float, ohlc: list[dict], ordermin: float, allow_buys: bool = True) -> list[dict]:
+    """Niveles a colocar (sin enviar): compras bajo el precio si la tendencia y el tape lo permiten,
     ventas del inventario existente arriba."""
     closes = [c["close"] for c in ohlc]
-    trend_ok = C.LIVE_IGNORE_TREND or price >= grid.sma(closes, C.TREND_SMA_DAYS)
+    trend_ok = allow_buys and (C.LIVE_IGNORE_TREND or price >= grid.sma(closes, C.TREND_SMA_DAYS))
     n, per = level_plan(price, ordermin)
     out: list[dict] = []
     if trend_ok:
@@ -117,6 +117,42 @@ def plan_grid(s: State, price: float, ohlc: list[dict], ordermin: float) -> list
             out.append({"side": "sell", "price": p, "qty": qty, "level": i, "txid": ""})
             remaining -= qty
     return out
+
+
+# --- tape (José, 26 nov 2026) ------------------------------------------------------
+
+def read_tape() -> dict:
+    """Últimos ~1000 trades del par activo: proporción comprada por agresores. Si falla, se registra y no bloquea."""
+    try:
+        return signals.kraken_trade_flow(_PAIR)
+    except Exception as e:  # noqa: BLE001
+        return {"error": str(e)[:120]}
+
+
+def tape_allows_buys(flow: dict) -> bool:
+    """False si la presión vendedora es alta (compras ≤ C.TAPE_SELL_PRESSURE del volumen)."""
+    if not C.TAPE_FILTER or "buy_ratio" not in flow:
+        return True
+    return flow["buy_ratio"] > C.TAPE_SELL_PRESSURE
+
+
+def cancel_buys(s: State) -> int:
+    """Retira las compras que esperan; las ventas se quedan."""
+    n = 0
+    keep = []
+    for od in s.orders:
+        if od["side"] == "buy" and od.get("txid"):
+            try:
+                kp.cancel_order(od["txid"])
+                n += 1
+                continue
+            except Exception as e:  # noqa: BLE001 — si no se pudo cancelar, se sigue rastreando
+                print(f"[live] no pude cancelar compra {od['txid']}: {e}")
+        if od["side"] == "buy" and not od.get("txid"):
+            continue
+        keep.append(od)
+    s.orders = keep
+    return n
 
 
 # --- Kraken ----------------------------------------------------------------------
@@ -155,7 +191,7 @@ def cancel_all_mine(s: State, open_orders: dict | None = None) -> int:
     return n
 
 
-def process_fills(s: State, since: int, now: str) -> list[str]:
+def process_fills(s: State, since: int, now: str, allow_buys: bool = True) -> list[str]:
     """Lee los trades desde `since` (unix) y aplica los que pertenecen a nuestras órdenes."""
     events: list[str] = []
     trades = kp.trades_history(start=since)
@@ -195,7 +231,7 @@ def process_fills(s: State, since: int, now: str) -> list[str]:
             _log_fill(now, "sell", rp(price), f["vol"], fee, pnl, od["txid"])
             events.append(f"venta {f['vol']:.6f} @ {fp(price)} → vuelta #{s.round_trips} {pnl:+.2f}")
             buy_p = rp(od["price"] * (1 - C.LEVEL_SPACING_PCT))
-            if buy_p >= s.range_low:
+            if allow_buys and buy_p >= s.range_low:
                 nxt = {"side": "buy", "price": buy_p, "qty": round(f["vol"], 8), "level": od["level"] - 1, "txid": ""}
                 place(s, nxt)
                 new_orders.append(nxt)
@@ -229,7 +265,7 @@ def reconcile_open(s: State) -> list[str]:
     return events
 
 
-def rebuild(s: State, ohlc: list[dict], price: float, today: str, ordermin: float) -> list[str]:
+def rebuild(s: State, ohlc: list[dict], price: float, today: str, ordermin: float, allow_buys: bool = True) -> list[str]:
     recent = ohlc[-C.RANGE_LOOKBACK_DAYS:]
     s.range_low = min(c["low"] for c in recent)
     s.range_high = max(c["high"] for c in recent)
@@ -244,7 +280,7 @@ def rebuild(s: State, ohlc: list[dict], price: float, today: str, ordermin: floa
         sync_balances(s)
     except Exception as e:  # noqa: BLE001
         events.append(f"ERROR leyendo saldo: {e}")
-    plan = plan_grid(s, price, ohlc, ordermin)
+    plan = plan_grid(s, price, ohlc, ordermin, allow_buys)
     placed = []
     for od in plan:
         try:
@@ -357,10 +393,12 @@ def tick(now_iso: str, today: str) -> tuple[State, float, list[str]]:
     first_run = not s.last_check
 
     sync_balances(s)
+    flow = read_tape()                       # se lee el tape ANTES de cualquier compra nueva
+    allow = tape_allows_buys(flow)
     since = int(_iso_to_unix(s.last_check)) - 120 if s.last_check else int(time.time()) - 86400
     try:
         if s.orders:
-            events += process_fills(s, since, now_iso)
+            events += process_fills(s, since, now_iso, allow)
         events += reconcile_open(s)
     except Exception as e:  # noqa: BLE001
         events.append(f"ERROR conciliando: {e}")
@@ -368,17 +406,19 @@ def tick(now_iso: str, today: str) -> tuple[State, float, list[str]]:
         pair_before = s.pair
         if s.range_low and s.range_built != today:
             events += range_stop(s, ohlc, today, ordermin)
-        if s.pair != pair_before:                     # cambió de par: recargar datos del nuevo
+        if s.pair != pair_before:                     # cambió de par: recargar datos y tape del nuevo
             t, ohlc, info, ordermin = _load_pair(s)
             price = t["last"]
             sync_balances(s)
+            flow = read_tape()
+            allow = tape_allows_buys(flow)
         if s.active and (not s.range_low or s.range_built != today):
-            events += rebuild(s, ohlc, price, today, ordermin)
+            events += rebuild(s, ohlc, price, today, ordermin, allow)
     except Exception as e:  # noqa: BLE001
         events.append(f"ERROR rango/stop: {e}")
     if s.active and s.range_built == today and not s.orders:
         # grid vacío (p. ej. precio pegado al borde inferior en la reconstrucción): reintentar centrado en el precio actual
-        plan = plan_grid(s, price, ohlc, ordermin)
+        plan = plan_grid(s, price, ohlc, ordermin, allow)
         placed = []
         for od in plan:
             try:
@@ -390,6 +430,7 @@ def tick(now_iso: str, today: str) -> tuple[State, float, list[str]]:
             s.center = price
             s.orders = placed
             events.append(f"grid recentrado en {fp(price)}: {len(placed)} órdenes reales")
+    events += apply_tape(s, flow, allow, price, ohlc, ordermin, today)
     if first_run:
         events.insert(0, f"LIVE activo ({pair_cfg()['label']}): saldo USD {s.cash:.2f}, moneda {s.coin:.6f}, mínimo de orden {ordermin}")
     s.last_price, s.last_check = price, now_iso
@@ -397,6 +438,34 @@ def tick(now_iso: str, today: str) -> tuple[State, float, list[str]]:
         s.log.append(f"{now_iso[5:16].replace('T', ' ')} {e}")
     save_state(s)
     return s, price, events
+
+
+def apply_tape(s: State, flow: dict, allow: bool, price: float, ohlc: list[dict], ordermin: float, today: str) -> list[str]:
+    """Pausa o reanuda las compras según el tape. Solo avisa en los cambios de estado."""
+    if not C.TAPE_FILTER or not s.active:
+        return []
+    pct = f"{flow['buy_ratio']:.0%} compra" if "buy_ratio" in flow else "sin dato"
+    events: list[str] = []
+    if not allow:
+        n = cancel_buys(s)
+        if not s.tape_paused:
+            events.append(f"tape vendedor ({pct}): compras en pausa" + (f", {n} retiradas" if n else ""))
+        s.tape_paused = True
+    elif s.tape_paused:
+        s.tape_paused = False
+        placed = 0
+        if s.range_built == today and not any(o["side"] == "buy" for o in s.orders):
+            for od in plan_grid(s, price, ohlc, ordermin, True):
+                if od["side"] != "buy":
+                    continue
+                try:
+                    place(s, od)
+                    s.orders.append(od)
+                    placed += 1
+                except Exception as e:  # noqa: BLE001
+                    print(f"[live] rechazo compra {od['qty']} @ {od['price']}: {e}")
+        events.append(f"tape normal ({pct}): compras reanudadas ({placed} colocadas)")
+    return events
 
 
 def _iso_to_unix(iso: str) -> float:
@@ -419,4 +488,5 @@ def status_text(s: State, price: float) -> str:
             f"equity ${eq:,.2f} ({eq - C.LIVE_CAPITAL_USD:+.2f}) · realizado ${s.realized_pnl:+.2f} · comisiones ${s.fees_paid:.2f}\n"
             f"vueltas {s.round_trips} · inventario {s.coin:.6f} {coin_name} ({inv_pct:.0%}) costo prom. {fp(s.avg_cost)}\n"
             f"rango {fp(s.range_low)}–{fp(s.range_high)} (borde bajo a {dist_low:.1%}, alto a {dist_high:.1%})\n"
-            f"órdenes reales: {buys} compras / {sells} ventas")
+            f"órdenes reales: {buys} compras / {sells} ventas"
+            + (" · compras en pausa por tape vendedor" if s.tape_paused else ""))

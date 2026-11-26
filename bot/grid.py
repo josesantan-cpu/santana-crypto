@@ -55,6 +55,7 @@ class State:
     last_check: str = ""
     log: list[str] = field(default_factory=list)
     pair: str = ""                  # par activo (LIVE); vacío = C.PAIR
+    tape_paused: bool = False       # LIVE: compras en pausa por presión vendedora en el tape (26 nov 2026)
 
 
 def load_state() -> State:

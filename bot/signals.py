@@ -9,7 +9,8 @@ Fuentes (todas rutas documentadas):
   3. Unusual Whales `/api/crypto/whales/recent` — ballenas cripto; se filtra BTC. Opcional:
      solo si existe UW_API_KEY en el entorno; si no, se registra como "no disponible".
 
-Cuando José apruebe pasar a fase activa, `verdict()` será el filtro de compras del grid.
+26 nov 2026 (José: "Lee el tape antes de cada entrada y salida..."): `kraken_trade_flow()` pasa a ser filtro
+ACTIVO de compras en LIVE (ver live.read_tape / C.TAPE_SELL_PRESSURE). El resto de la foto sigue siendo solo registro.
 """
 from __future__ import annotations
 

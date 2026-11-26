@@ -48,6 +48,16 @@ LIVE_IGNORE_TREND = True        # prueba de tubería con $50 (José, 12 nov 2026
                                 # el modo LIVE coloca compras aunque BTC esté bajo la SMA50. El papel conserva
                                 # el filtro. Volver a False cuando BTC cruce la SMA50 o al subir el capital.
 
+# Lectura del tape antes de comprar (José, 26 nov 2026: "Lee el tape antes de cada entrada y salida, utiliza ese
+# indicador para que el bot sepa cuando entrar o salir dependiendo del volumen de compra y venta").
+# En cada corrida el bot lee los últimos ~1000 trades de Kraken del par activo (lado agresor).
+# Si las compras son ≤ 40% del volumen (≥ 60% ventas) NO coloca compras y retira las que esperan; las reanuda
+# cuando la presión vendedora baja. Medido en TRX (20–26 nov, signals.jsonl): con ≥60% ventas el precio cayó
+# en promedio 0.40% en las 4 h siguientes y subió solo 29% de las veces. Las ventas NO se tocan: con mucha compra
+# el precio no siguió subiendo (no justifica aguantar la venta) y salir antes cuesta más en comisiones de lo que evita.
+TAPE_FILTER = True
+TAPE_SELL_PRESSURE = 0.40
+
 # Operación
 CHECK_INTERVAL_MIN = 15         # frecuencia de la corrida (GitHub Actions)
 MIN_ORDER_USD = 10.0            # Kraken no acepta órdenes menores (~0.0001 BTC)

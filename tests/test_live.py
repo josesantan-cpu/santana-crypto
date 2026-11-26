@@ -1,6 +1,6 @@
 """Grid en vivo contra un Kraken simulado (sin red)."""
 from bot import config as C
-from bot import kraken, kraken_private as kp, live
+from bot import kraken, kraken_private as kp, live, signals
 
 
 class FakeKraken:
@@ -56,6 +56,7 @@ def _patch(monkeypatch, fk, price=73000.0, tmp_path=None):
     for name in ("balance", "open_orders", "trades_history", "add_order", "cancel_order", "market_sell"):
         monkeypatch.setattr(kp, name, getattr(fk, name))
     monkeypatch.setattr(kraken, "ticker", lambda pair: {"bid": price - 5, "ask": price + 5, "last": price})
+    monkeypatch.setattr(signals, "kraken_trade_flow", lambda pair: {"buy_ratio": 0.5})   # tape neutral por defecto
     ohlc = [{"time": i, "open": price, "high": price * 1.03, "low": price * 0.95, "close": price * 0.99, "volume": 1}
             for i in range(60)]
     monkeypatch.setattr(kraken, "daily_ohlc", lambda pair, days=60: ohlc)
@@ -183,3 +184,50 @@ def test_second_sell_after_inventory_empty_uses_avg_cost(tmp_path, monkeypatch):
     ev = live.process_fills(s, 0, "2026-11-23T16:00:00+00:00")
     assert s.realized_pnl < 0.5                     # (0.31-0.30)*20 = 0.20 menos comisiones, no 6.2
     assert s.avg_cost == 0.0                         # se reinicia después de contabilizar
+
+
+def test_tape_sell_pressure_blocks_and_resumes_buys(tmp_path, monkeypatch):
+    """José, 26 nov 2026: con ≥60% de ventas en el tape no se compra; al normalizarse se reanuda."""
+    fk = FakeKraken(usd=50.0)
+    _patch(monkeypatch, fk, tmp_path=tmp_path)
+    tape = {"buy_ratio": 0.30}
+    monkeypatch.setattr(signals, "kraken_trade_flow", lambda pair: dict(tape))
+    s, price, ev = live.tick("2026-11-12T17:00:00+00:00", "2026-11-12")
+    assert not [o for o in s.orders if o["side"] == "buy"] and not fk.open
+    assert s.tape_paused and any("tape vendedor (30% compra)" in e for e in ev)
+    # sigue vendedor: no repite el aviso
+    s, price, ev = live.tick("2026-11-12T17:15:00+00:00", "2026-11-12")
+    assert not any("tape" in e for e in ev)
+    # el tape se normaliza: vuelven las compras
+    tape["buy_ratio"] = 0.55
+    s, price, ev = live.tick("2026-11-12T17:30:00+00:00", "2026-11-12")
+    buys = [o for o in s.orders if o["side"] == "buy"]
+    assert buys and len(fk.open) == len(buys) and not s.tape_paused
+    assert any("compras reanudadas" in e for e in ev)
+
+
+def test_tape_pause_keeps_sells_and_cancels_waiting_buys(tmp_path, monkeypatch):
+    fk = FakeKraken(usd=50.0)
+    _patch(monkeypatch, fk, tmp_path=tmp_path)
+    s, price, ev = live.tick("2026-11-12T17:00:00+00:00", "2026-11-12")
+    buys = [o for o in s.orders if o["side"] == "buy"]
+    fk.fill(buys[0]["txid"], buys[0]["price"])          # una compra se llena → aparece su venta
+    monkeypatch.setattr(signals, "kraken_trade_flow", lambda pair: {"buy_ratio": 0.35})
+    s, price, ev = live.tick("2026-11-12T17:15:00+00:00", "2026-11-12")
+    assert [o["side"] for o in s.orders] == ["sell"]
+    assert all(o["descr"]["type"] == "sell" for o in fk.open.values())
+    # la venta se llena con el tape vendedor: se contabiliza, pero no se recoloca la compra
+    sell = s.orders[0]
+    fk.fill(sell["txid"], sell["price"])
+    s, price, ev = live.tick("2026-11-12T17:30:00+00:00", "2026-11-12")
+    assert s.round_trips == 1 and not s.orders and not fk.open
+
+
+def test_tape_error_does_not_block(tmp_path, monkeypatch):
+    fk = FakeKraken(usd=50.0)
+    _patch(monkeypatch, fk, tmp_path=tmp_path)
+    def boom(pair):
+        raise RuntimeError("sin red")
+    monkeypatch.setattr(signals, "kraken_trade_flow", boom)
+    s, price, ev = live.tick("2026-11-12T17:00:00+00:00", "2026-11-12")
+    assert [o for o in s.orders if o["side"] == "buy"]

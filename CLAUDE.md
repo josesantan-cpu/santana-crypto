@@ -18,6 +18,11 @@
   cayó dentro. Agregar un tercer par requiere nueva aprobación escrita. El par activo vive en `live_state.json["pair"]`.
   21 nov 2026: José aprobó un tercer par alterno: "Añade a eth" (ETH/USD en `LIVE_PAIRS`). Mismo capital, un par a la vez;
   ETH solo entra vía `try_switch` si califica. Un cuarto par requiere nueva aprobación escrita.
+  26 nov 2026: José pidió usar el tape como filtro: "Lee el tape antes de cada entrada y salida, utiliza ese indicador para
+  que el bot sepa cuando entrar o salir dependiendo del volumen de compra y venta". Implementado solo para ENTRADAS
+  (`TAPE_FILTER`, `TAPE_SELL_PRESSURE = 0.40` en config): con ≥60% de ventas en los últimos ~1000 trades no se compra y se
+  retiran las compras que esperan. Las salidas no se tocan (los datos 14–26 nov no lo justifican). Cambios de distancia (2%),
+  filtro de tendencia y comisión real (0.4%) siguen PENDIENTES de aprobación escrita.
 - Estado vivo en `data/live_state.json` / `data/live_fills.jsonl`; el papel sigue en `data/state.json`.
   Al preguntar "cómo va el bot de cripto" con LIVE activo, reportar el estado LIVE.
 - Rutas de Kraken: solo las documentadas en docs.kraken.com (públicas y privadas listadas en kraken_private.py).
