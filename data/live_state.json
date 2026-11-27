@@ -22,8 +22,8 @@
  "days_inside": 0,
  "stopped_at": "",
  "stop_check_day": "2026-11-17",
- "last_price": 0.304742,
- "last_check": "2026-11-27T14:29:14.344160+00:00",
+ "last_price": 0.303413,
+ "last_check": "2026-11-27T14:44:17.088014+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
@@ -59,8 +59,9 @@
   "11-25 00:08 rango TRX/USD reconstruido 0.298277\u20130.317237, centro 0.307694, 2 \u00f3rdenes reales",
   "11-25 15:30 compra 41.035136 @ 0.304617",
   "11-26 00:15 rango TRX/USD reconstruido 0.298277\u20130.315421, centro 0.303667, 3 \u00f3rdenes reales",
-  "11-27 00:05 rango TRX/USD reconstruido 0.298277\u20130.313662, centro 0.303799, 1 \u00f3rdenes reales"
+  "11-27 00:05 rango TRX/USD reconstruido 0.298277\u20130.313662, centro 0.303799, 1 \u00f3rdenes reales",
+  "11-27 14:44 tape vendedor (37% compra): compras en pausa"
  ],
  "pair": "TRXUSD",
- "tape_paused": false
+ "tape_paused": true
 }
