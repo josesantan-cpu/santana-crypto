@@ -38,6 +38,7 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - name: Sesión del grid
+        timeout-minutes: 345     # si algo se cuelga, este paso falla pero el relanzamiento igual corre
         env:
           KRAKEN_API_KEY: ${{ secrets.KRAKEN_API_KEY }}
           KRAKEN_API_SECRET: ${{ secrets.KRAKEN_API_SECRET }}
@@ -51,7 +52,11 @@ jobs:
           # (15 nov: una sesión esperó 1h38 en cola, arrancó con datos viejos y el rebase quedó en conflicto 3 horas).
           git fetch origin main
           git checkout -B main origin/main
-          end=$(( SECONDS + LOOP_MINUTES * 60 ))
+          # 27 nov: todas las sesiones morían por el tope de 358 min (el último sleep se pasaba) y nunca llegaban
+          # a relanzarse; el bot quedaba parado 1–5 h hasta el cron de respaldo. Ahora la sesión dura máx. 335 min
+          # y no empieza un sleep que termine después del límite.
+          budget=$(( LOOP_MINUTES > 335 ? 335 : LOOP_MINUTES ))
+          end=$(( SECONDS + budget * 60 ))
           while true; do
             python -m bot.run || echo "tick con error; sigo"
             git add data/ || true
@@ -67,11 +72,11 @@ jobs:
               fi
               git push || { git pull --rebase origin main && git push; } || true
             fi
-            [ "$SECONDS" -ge "$end" ] && break
+            [ $(( SECONDS + POLL_SECONDS )) -ge "$end" ] && break
             sleep "$POLL_SECONDS"
           done
       - name: Relanzar la siguiente sesión
-        if: env.LOOP_MINUTES != '0'
+        if: always() && env.LOOP_MINUTES != '0'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh api -X POST "repos/${{ github.repository }}/actions/workflows/grid.yml/dispatches" -f ref=main
