@@ -29,8 +29,8 @@
  "days_inside": 0,
  "stopped_at": "",
  "stop_check_day": "2026-11-17",
- "last_price": 0.3005,
- "last_check": "2026-11-28T09:49:35.007130+00:00",
+ "last_price": 0.300436,
+ "last_check": "2026-11-28T10:04:38.371195+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
