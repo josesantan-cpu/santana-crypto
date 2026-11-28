@@ -4,16 +4,23 @@
  "coin": 41.03513592,
  "avg_cost": 0.3046170000355149,
  "range_low": 0.298277,
- "range_high": 0.313662,
- "range_built": "2026-11-27",
- "center": 0.303799,
+ "range_high": 0.313355,
+ "range_built": "2026-11-28",
+ "center": 0.300591,
  "orders": [
   {
    "side": "sell",
-   "price": 0.309875,
-   "qty": 41.03513592,
+   "price": 0.306603,
+   "qty": 20.51756796,
    "level": 1,
-   "txid": "OVREJT-XAMES-OB6MWM"
+   "txid": "OKSKKA-PCWTG-WFDHE7"
+  },
+  {
+   "side": "sell",
+   "price": 0.312735,
+   "qty": 20.51756796,
+   "level": 2,
+   "txid": "OKFU2A-LBTCJ-3OF5FI"
   }
  ],
  "round_trips": 3,
@@ -22,8 +29,8 @@
  "days_inside": 0,
  "stopped_at": "",
  "stop_check_day": "2026-11-17",
- "last_price": 0.300496,
- "last_check": "2026-11-27T23:46:56.119087+00:00",
+ "last_price": 0.300591,
+ "last_check": "2026-11-28T00:01:59.612096+00:00",
  "log": [
   "11-12 17:36 LIVE activo: saldo USD 50.00, BTC 0.000000, m\u00ednimo de orden 6e-05 BTC",
   "11-12 17:36 rango reconstruido 71133\u201381180, centro 71834, 0 \u00f3rdenes reales",
@@ -62,7 +69,8 @@
   "11-27 00:05 rango TRX/USD reconstruido 0.298277\u20130.313662, centro 0.303799, 1 \u00f3rdenes reales",
   "11-27 14:44 tape vendedor (37% compra): compras en pausa",
   "11-27 15:44 tape normal (48% compra): compras reanudadas (0 colocadas)",
-  "11-27 22:31 tape vendedor (35% compra): compras en pausa"
+  "11-27 22:31 tape vendedor (35% compra): compras en pausa",
+  "11-28 00:01 rango TRX/USD reconstruido 0.298277\u20130.313355, centro 0.300591, 2 \u00f3rdenes reales"
  ],
  "pair": "TRXUSD",
  "tape_paused": true
